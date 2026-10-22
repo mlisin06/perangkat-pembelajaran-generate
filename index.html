@@ -614,7 +614,7 @@ Skema JSON wajib:
         if (!response.ok) {
           const errRes = await response.json().catch(() => ({}));
           const errMsg = errRes.error?.message || `HTTP Status ${response.status}`;
-          throw new Error(`Gemini API Error: ${errMsg}`);
+          throw new Error(`Gemini API Error (${response.status}): ${errMsg}`);
         }
 
         const result = await response.json();
@@ -631,7 +631,7 @@ Skema JSON wajib:
           parsedData = JSON.parse(cleanedText);
         } catch (e) {
           console.error("Raw response:", textResponse);
-          throw new Error("Gagal membaca data dari AI. Coba persingkat atau pertegas isi ringkasan materi.");
+          throw new Error("Gagal membaca format JSON dari AI. Silakan coba klik Generate sekali lagi.");
         }
 
         renderGeneratedData(parsedData);
@@ -640,7 +640,33 @@ Skema JSON wajib:
 
       } catch (err) {
         console.error("Gemini Error:", err);
-        showToast(err.message, "error");
+        
+        // Fallback: Tampilkan data demonstrasi/sintesis agar pengguna tetap mendapat hasil jika API bermasalah
+        showToast(`Gagal memanggil API: ${err.message}. Menampilkan draf contoh otomatis...`, "error");
+        
+        const fallbackData = {
+          cp: `Peserta didik mampu memahami konsep dasar ${mapel} pada ${fase}, menerapkan logika berpikir kritis, dan menyelesaikan persoalan materi terkait secara rinci.`,
+          atp: [
+            { kode: "TP.1", tp: `Memahami konsep dasar ${mapel}`, materi: materi.slice(0, 30) + '...', jp: 4 },
+            { kode: "TP.2", tp: `Menerapkan langkah-langkah praktis ${mapel}`, materi: "Penerapan Praktik", jp: 4 }
+          ],
+          promes: [
+            { no: 1, materi: `Topik 1: ${mapel}`, jp: 4, b1: "4", b2: "", b3: "", b4: "" },
+            { no: 2, materi: `Topik 2: Praktikum`, jp: 4, b1: "", b2: "4", b3: "", b4: "" }
+          ],
+          modul: `### DRAF MODUL AJAR (${mapel})\n**Fase/Kelas:** ${fase}\n**Model Pembelajaran:** ${model}\n\n1. **Tujuan Pembelajaran:** Peserta didik dapat menguasai materi ${materi.slice(0, 40)}...\n2. **Kegiatan Pembelajaran:**\n- *Pendahuluan (15 Menit):* Aperseptif dan motivasi.\n- *Kegiatan Inti (60 Menit):* Implementasi alur ${model}.\n- *Penutup (15 Menit):* Refleksi & Kuis singkat.\n3. **Asesmen:** Formatif dan Sumatif.`,
+          lkpd: `### LEMBAR KERJA PESERTA DIDIK (LKPD)\n**Mata Pelajaran:** ${mapel}\n**Petunjuk:** Kerjakan soal berikut bersama kelompok Anda.\n1. Analisis ringkasan materi berikut: "${materi.slice(0, 50)}..."\n2. Buatlah kesimpulan dan paparkan di depan kelas!`,
+          media: `1. Slide Presentasi Interaktif\n2. Lembar Diskusi Kelompok\n3. Modul Pembelajaran Digital / Video Tutorial`,
+          kuis: [
+            { no: 1, soal: `Apa yang dimaksud dengan materi utama ${mapel}?`, opsi: ["A. Konsep Dasar", "B. Pilihan B", "C. Pilihan C", "D. Pilihan D"], kunci: "A. Konsep Dasar" }
+          ]
+        };
+
+        setTimeout(() => {
+          renderGeneratedData(fallbackData);
+          switchTab('cpatp-tab');
+        }, 1500);
+
       } finally {
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-yellow-300"></i> Generate Perangkat Lengkap (Detail)`;
