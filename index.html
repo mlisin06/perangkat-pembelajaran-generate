@@ -560,30 +560,28 @@ Berdasarkan parameter berikut:
 - Model Pembelajaran: ${model}
 - Ringkasan Materi: ${materi}
 
-Buatkan perangkat pembelajaran yang lengkap. Kembalikan HANYA format JSON murni yang valid tanpa pembungkus Markdown.
+Buatkan perangkat pembelajaran secara terstruktur, akurat, dan sangat lengkap. Kembalikan HANYA format JSON murni tanpa karakter atau pembungkus markdown apapun.
 
-Skema JSON yang wajib dipenuhi:
+Skema JSON wajib:
 {
-  "cp": "Ringkasan Capaian Pembelajaran secara rinci",
+  "cp": "Uraian Capaian Pembelajaran (CP) Elemen",
   "atp": [
-    {"kode": "TP.1", "tp": "Uraian TP 1", "materi": "Submateri 1", "jp": 4},
-    {"kode": "TP.2", "tp": "Uraian TP 2", "materi": "Submateri 2", "jp": 4}
+    {"kode": "TP.1", "tp": "Uraian TP 1", "materi": "Materi Pokok 1", "jp": 4}
   ],
   "promes": [
-    {"no": 1, "materi": "Submateri 1", "jp": 4, "b1": "4", "b2": "", "b3": "", "b4": ""},
-    {"no": 2, "materi": "Submateri 2", "jp": 4, "b1": "", "b2": "4", "b3": "", "b4": ""}
+    {"no": 1, "materi": "Materi Pokok 1", "jp": 4, "b1": "4", "b2": "", "b3": "", "b4": ""}
   ],
-  "modul": "Modul Ajar RPP mencakup Identitas, Profil Pelajar Pancasila, TP, Pertanyaan Pemantik, Langkah Pembelajaran Rinci (Pendahuluan, Kegiatan Inti ${model}, Penutup), Asesmen, dan Refleksi.",
-  "lkpd": "Lembar Kerja Peserta Didik beserta Petunjuk Kerja dan Aktivitas.",
-  "media": "Rekomendasi media visual dan alat bantu digital.",
+  "modul": "Lengkap dengan Identitas, Profil Pelajar Pancasila, Pemahaman Bermakna, Pertanyaan Pemantik, Kegiatan Pembelajaran (Pendahuluan, Inti ${model}, Penutup), Asesmen, & Refleksi.",
+  "lkpd": "Lembar Kerja Peserta Didik (Instruksi, Tugas Kelompok/Individu, & Rubrik Penting)",
+  "media": "Rekomendasi Media & Alat Pembelajaran Digital/Konvensional",
   "kuis": [
-    {"no": 1, "soal": "Soal PG 1", "opsi": ["A. pilihan 1", "B. pilihan 2", "C. pilihan 3", "D. pilihan 4"], "kunci": "A"},
-    {"no": 2, "soal": "Soal Essay 1", "opsi": [], "kunci": "Jawaban acuan"}
+    {"no": 1, "soal": "Pertanyaan Pilihan Ganda/Essay", "opsi": ["A...", "B...", "C...", "D..."], "kunci": "Kunci Jawaban"}
   ]
 }`;
 
       try {
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeGeminiKey.trim()}`;
+        // Menggunakan model gemini-1.5-flash yang valid dan direkomendasikan
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeGeminiKey.trim()}`;
         const response = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -609,7 +607,6 @@ Skema JSON yang wajib dipenuhi:
 
         let parsedData;
         try {
-          // Bersihkan string JSON jika AI menyertakan blok markdown ```json ... ```
           let cleanedText = textResponse.trim();
           if (cleanedText.startsWith("```")) {
             cleanedText = cleanedText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
@@ -617,7 +614,7 @@ Skema JSON yang wajib dipenuhi:
           parsedData = JSON.parse(cleanedText);
         } catch (e) {
           console.error("Raw response:", textResponse);
-          throw new Error("Gagal membaca struktur data JSON dari AI: " + e.message);
+          throw new Error("Gagal membaca data dari AI. Coba persingkat atau pertegas isi ringkasan materi.");
         }
 
         renderGeneratedData(parsedData);
