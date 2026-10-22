@@ -47,10 +47,10 @@
       
       <!-- Status Badges -->
       <div class="flex items-center gap-3">
-        <div id="gemini-status" class="flex items-center gap-1.5 px-3 py-1 bg-red-500/20 text-red-200 border border-red-400/30 text-xs rounded-full">
+        <div id="gemini-status" class="flex items-center gap-1.5 px-3 py-1 bg-red-500/20 text-red-200 border border-red-400/30 text-xs rounded-full cursor-pointer" onclick="toggleConfigPanel()">
           <span class="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span> Gemini: Unset
         </div>
-        <div id="firebase-status" class="flex items-center gap-1.5 px-3 py-1 bg-red-500/20 text-red-200 border border-red-400/30 text-xs rounded-full">
+        <div id="firebase-status" class="flex items-center gap-1.5 px-3 py-1 bg-red-500/20 text-red-200 border border-red-400/30 text-xs rounded-full cursor-pointer" onclick="toggleConfigPanel()">
           <span class="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span> Firebase: Unset
         </div>
         <button id="toggle-config-btn" onclick="toggleConfigPanel()" class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg text-xs font-semibold transition flex items-center gap-1">
@@ -62,27 +62,32 @@
     <!-- Collapsible Config Panel -->
     <div id="config-panel" class="hidden bg-slate-900 border-t border-slate-700/50 p-4 sm:p-6 text-slate-200">
       <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
+        <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700">
           <label class="block text-xs font-semibold text-slate-300 mb-1">
-            <i class="fa-solid fa-key text-yellow-400"></i> Gemini API Key
+            <i class="fa-solid fa-key text-yellow-400"></i> Gemini API Key <span class="text-red-400">*</span>
           </label>
           <div class="flex gap-2">
-            <input type="password" id="input-gemini-key" placeholder="AIzaSy..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
-            <button onclick="pasteApiKey()" type="button" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-2 rounded-lg text-xs font-semibold transition">
+            <input type="password" id="input-gemini-key" placeholder="Masukkan API Key (AIzaSy...)" class="w-full bg-slate-800 border border-slate-600 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+            <button onclick="pasteApiKey()" type="button" title="Tempel dari Clipboard" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-2 rounded-lg text-xs font-semibold transition">
               <i class="fa-solid fa-paste"></i>
             </button>
           </div>
-          <p class="text-[10px] text-slate-400 mt-1">Dapatkan API Key di Google AI Studio (aistudio.google.com)</p>
+          <p class="text-[11px] text-slate-400 mt-2">
+            Dapatkan API Key secara gratis di: 
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline hover:text-blue-300">Google AI Studio <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>
+          </p>
         </div>
-        <div>
+
+        <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700">
           <label class="block text-xs font-semibold text-slate-300 mb-1">
-            <i class="fa-solid fa-fire text-orange-400"></i> Firebase Config (JSON Format)
+            <i class="fa-solid fa-fire text-orange-400"></i> Firebase Config (Opsional - JSON)
           </label>
-          <textarea id="input-firebase-config" rows="3" placeholder='{"apiKey":"...", "projectId":"...", ...}' class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"></textarea>
+          <textarea id="input-firebase-config" rows="2" placeholder='{"apiKey":"...", "projectId":"...", ...}' class="w-full bg-slate-800 border border-slate-600 rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"></textarea>
+          <p class="text-[11px] text-slate-400 mt-1">Digunakan untuk simpan draf ke Firestore jika diisi.</p>
         </div>
       </div>
       <div class="max-w-7xl mx-auto mt-4 flex justify-end gap-2">
-        <button onclick="saveUserConfig()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow">
+        <button onclick="saveUserConfig()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-lg">
           <i class="fa-solid fa-floppy-disk"></i> Simpan Konfigurasi
         </button>
       </div>
@@ -375,11 +380,8 @@
     /* ==========================================================================
        1. GLOBAL CONFIGURATION & INITIALIZATION
        ========================================================================== */
-    const DEFAULT_GEMINI_API_KEY = "";
-    const DEFAULT_FIREBASE_CONFIG = null;
-
-    let activeGeminiKey = localStorage.getItem('gemini_key') || DEFAULT_GEMINI_API_KEY;
-    let activeFirebaseConfig = localStorage.getItem('firebase_config') ? JSON.parse(localStorage.getItem('firebase_config')) : DEFAULT_FIREBASE_CONFIG;
+    let activeGeminiKey = localStorage.getItem('gemini_key') || "";
+    let activeFirebaseConfig = localStorage.getItem('firebase_config') ? JSON.parse(localStorage.getItem('firebase_config')) : null;
     let db = null;
 
     // Set PDF.js worker
@@ -396,11 +398,11 @@
       const firebaseStatus = document.getElementById('firebase-status');
 
       if (activeGeminiKey && activeGeminiKey.trim() !== "") {
-        geminiStatus.className = "flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 text-xs rounded-full";
+        geminiStatus.className = "flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 text-xs rounded-full cursor-pointer";
         geminiStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Gemini: Ready`;
         document.getElementById('input-gemini-key').value = activeGeminiKey;
       } else {
-        geminiStatus.className = "flex items-center gap-1.5 px-3 py-1 bg-red-500/20 text-red-200 border border-red-400/30 text-xs rounded-full";
+        geminiStatus.className = "flex items-center gap-1.5 px-3 py-1 bg-red-500/20 text-red-200 border border-red-400/30 text-xs rounded-full cursor-pointer";
         geminiStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span> Gemini: Unset`;
       }
 
@@ -410,7 +412,7 @@
             firebase.initializeApp(activeFirebaseConfig);
           }
           db = firebase.firestore();
-          firebaseStatus.className = "flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 text-xs rounded-full";
+          firebaseStatus.className = "flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 text-xs rounded-full cursor-pointer";
           firebaseStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Firebase: Ready`;
           document.getElementById('input-firebase-config').value = JSON.stringify(activeFirebaseConfig, null, 2);
         } catch (e) {
@@ -431,6 +433,9 @@
       if (keyInput) {
         localStorage.setItem('gemini_key', keyInput);
         activeGeminiKey = keyInput;
+      } else {
+        localStorage.removeItem('gemini_key');
+        activeGeminiKey = "";
       }
 
       if (fbInput) {
@@ -453,7 +458,7 @@
       try {
         const text = await navigator.clipboard.readText();
         if (text) {
-          document.getElementById('input-gemini-key').value = text;
+          document.getElementById('input-gemini-key').value = text.trim();
           showToast("API Key berhasil ditempel dari clipboard!", "success");
         }
       } catch (err) {
@@ -467,6 +472,7 @@
     async function saveDataToFirebase() {
       if (!db) {
         showToast("Firebase belum terkonfigurasi secara valid", "error");
+        toggleConfigPanel();
         return;
       }
       try {
@@ -514,12 +520,8 @@
           const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
           extractedText = result.value;
         } else if (file.type.startsWith('image/')) {
-          showToast("Membaca teks dari gambar...", "info");
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            document.getElementById('input-materi').value = `[File Gambar Terunggah: ${file.name}]\n(Catatan: Untuk analisis visual gambar penuh, klik tombol Generate dengan API Key aktif)`;
-          };
-          reader.readAsDataURL(file);
+          showToast("File gambar terunggah. Silakan lengkapi deskripsi di teks materi.", "info");
+          document.getElementById('input-materi').value += `\n[File Gambar Terunggah: ${file.name}]`;
           loader.classList.add('hidden');
           return;
         } else {
@@ -549,8 +551,10 @@
        ========================================================================== */
     async function generateAllWithGemini() {
       if (!activeGeminiKey || activeGeminiKey.trim() === "") {
-        showToast("Harap isi Gemini API Key di panel Pengaturan Kunci!", "error");
-        toggleConfigPanel();
+        showToast("Harap masukkan Gemini API Key terlebih dahulu!", "error");
+        const panel = document.getElementById('config-panel');
+        panel.classList.remove('hidden');
+        document.getElementById('input-gemini-key').focus();
         return;
       }
 
@@ -561,7 +565,8 @@
       const materi = document.getElementById('input-materi').value;
 
       if (!materi.trim()) {
-        showToast("Harap masukkan uraian materi terlebih dahulu!", "error");
+        showToast("Harap masukkan uraian atau ringkasan materi terlebih dahulu!", "error");
+        document.getElementById('input-materi').focus();
         return;
       }
 
@@ -597,8 +602,7 @@ Skema JSON wajib:
 }`;
 
       try {
-        // Menggunakan model gemini-2.5-flash yang valid dan direkomendasikan
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeGeminiKey.trim()}`;
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeGeminiKey.trim()}`;
         const response = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -614,25 +618,20 @@ Skema JSON wajib:
         if (!response.ok) {
           const errRes = await response.json().catch(() => ({}));
           const errMsg = errRes.error?.message || `HTTP Status ${response.status}`;
-          throw new Error(`Gemini API Error (${response.status}): ${errMsg}`);
+          throw new Error(`Gemini API Error: ${errMsg}`);
         }
 
         const result = await response.json();
         const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
-        if (!textResponse) throw new Error("Respon dari Gemini AI kosong. Periksa kunci API atau tingkat kuota Anda.");
+        if (!textResponse) throw new Error("Respon dari Gemini AI kosong. Periksa kunci API Anda.");
 
         let parsedData;
-        try {
-          let cleanedText = textResponse.trim();
-          if (cleanedText.startsWith("```")) {
-            cleanedText = cleanedText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
-          }
-          parsedData = JSON.parse(cleanedText);
-        } catch (e) {
-          console.error("Raw response:", textResponse);
-          throw new Error("Gagal membaca format JSON dari AI. Silakan coba klik Generate sekali lagi.");
+        let cleanedText = textResponse.trim();
+        if (cleanedText.startsWith("```")) {
+          cleanedText = cleanedText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
         }
+        parsedData = JSON.parse(cleanedText);
 
         renderGeneratedData(parsedData);
         showToast("Perangkat pembelajaran berhasil digenerate!", "success");
@@ -640,33 +639,7 @@ Skema JSON wajib:
 
       } catch (err) {
         console.error("Gemini Error:", err);
-        
-        // Fallback: Tampilkan data demonstrasi/sintesis agar pengguna tetap mendapat hasil jika API bermasalah
-        showToast(`Gagal memanggil API: ${err.message}. Menampilkan draf contoh otomatis...`, "error");
-        
-        const fallbackData = {
-          cp: `Peserta didik mampu memahami konsep dasar ${mapel} pada ${fase}, menerapkan logika berpikir kritis, dan menyelesaikan persoalan materi terkait secara rinci.`,
-          atp: [
-            { kode: "TP.1", tp: `Memahami konsep dasar ${mapel}`, materi: materi.slice(0, 30) + '...', jp: 4 },
-            { kode: "TP.2", tp: `Menerapkan langkah-langkah praktis ${mapel}`, materi: "Penerapan Praktik", jp: 4 }
-          ],
-          promes: [
-            { no: 1, materi: `Topik 1: ${mapel}`, jp: 4, b1: "4", b2: "", b3: "", b4: "" },
-            { no: 2, materi: `Topik 2: Praktikum`, jp: 4, b1: "", b2: "4", b3: "", b4: "" }
-          ],
-          modul: `### DRAF MODUL AJAR (${mapel})\n**Fase/Kelas:** ${fase}\n**Model Pembelajaran:** ${model}\n\n1. **Tujuan Pembelajaran:** Peserta didik dapat menguasai materi ${materi.slice(0, 40)}...\n2. **Kegiatan Pembelajaran:**\n- *Pendahuluan (15 Menit):* Aperseptif dan motivasi.\n- *Kegiatan Inti (60 Menit):* Implementasi alur ${model}.\n- *Penutup (15 Menit):* Refleksi & Kuis singkat.\n3. **Asesmen:** Formatif dan Sumatif.`,
-          lkpd: `### LEMBAR KERJA PESERTA DIDIK (LKPD)\n**Mata Pelajaran:** ${mapel}\n**Petunjuk:** Kerjakan soal berikut bersama kelompok Anda.\n1. Analisis ringkasan materi berikut: "${materi.slice(0, 50)}..."\n2. Buatlah kesimpulan dan paparkan di depan kelas!`,
-          media: `1. Slide Presentasi Interaktif\n2. Lembar Diskusi Kelompok\n3. Modul Pembelajaran Digital / Video Tutorial`,
-          kuis: [
-            { no: 1, soal: `Apa yang dimaksud dengan materi utama ${mapel}?`, opsi: ["A. Konsep Dasar", "B. Pilihan B", "C. Pilihan C", "D. Pilihan D"], kunci: "A. Konsep Dasar" }
-          ]
-        };
-
-        setTimeout(() => {
-          renderGeneratedData(fallbackData);
-          switchTab('cpatp-tab');
-        }, 1500);
-
+        showToast(`Gagal: ${err.message}`, "error");
       } finally {
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-yellow-300"></i> Generate Perangkat Lengkap (Detail)`;
