@@ -108,6 +108,13 @@
     </div>
   </nav>
 
+  <!-- FLOATING ACTION BUTTON (AKSES CEPAT) -->
+  <div class="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2 no-print">
+    <button onclick="quickGenerateOrFocus()" title="Generate / Ke Input Teks" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white p-3.5 rounded-full shadow-2xl transition hover:scale-105 flex items-center justify-center border-2 border-white/30">
+      <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+    </button>
+  </div>
+
   <!-- MAIN CONTENT CONTAINER -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
 
@@ -576,7 +583,7 @@ Skema JSON yang wajib dipenuhi:
 }`;
 
       try {
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeGeminiKey.trim()}`;
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeGeminiKey.trim()}`;
         const response = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -736,6 +743,17 @@ Skema JSON yang wajib dipenuhi:
       if (activeBtn) {
         activeBtn.classList.add('tab-active');
         activeBtn.classList.remove('text-slate-600');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function quickGenerateOrFocus() {
+      const inputTab = document.getElementById('input-tab');
+      if (inputTab.classList.contains('hidden')) {
+        switchTab('input-tab');
+        document.getElementById('input-materi').focus();
+      } else {
+        generateAllWithGemini();
       }
     }
 
