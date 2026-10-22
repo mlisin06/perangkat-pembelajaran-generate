@@ -1,988 +1,742 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generator Perangkat Pembelajaran Dinamis - Kurikulum Merdeka</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- SheetJS for XLSX Export -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- PDF.js for extraction of text from PDF files -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-    </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .tab-active {
-            border-bottom: 3px solid #3b82f6;
-            color: #2563eb;
-            font-weight: 600;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generator Perangkat Pembelajaran Kurikulum Merdeka</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- SheetJS (XLSX) for Excel Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- PDF.js for PDF Reading -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <!-- Mammoth.js for Word DOCX Reading -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <!-- Firebase JS SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .tab-active { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 600; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    @media print {
+      header, nav, #config-panel, button, .no-print { display: none !important; }
+      body { background: white; color: black; }
+      .tab-content { display: block !important; }
+    }
+  </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-    <!-- Header / Navbar -->
-    <header class="bg-indigo-900 text-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center space-x-3">
-                    <div class="bg-blue-500 p-2 rounded-lg">
-                        <i class="fa-solid fa-graduation-cap text-xl text-white"></i>
-                    </div>
-                    <div>
-                        <h1 class="font-bold text-lg leading-tight">Perangkat Ajar AI</h1>
-                        <p class="text-xs text-indigo-200">Kurikulum Merdeka Dinamis Engine</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span id="sync-status" class="inline-flex items-center text-xs bg-indigo-800 text-indigo-200 px-3 py-1 rounded-full border border-indigo-700">
-                        <i class="fa-solid fa-cloud-check text-green-400 mr-2"></i> Cloud Sync Ready
-                    </span>
-                    <button id="btn-save-cloud" onclick="saveToCloud()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow">
-                        <i class="fa-solid fa-floppy-disk"></i> Simpan Realtime
-                    </button>
-                </div>
-            </div>
+  <!-- TOP HEADER & PANEL CONFIGURATION -->
+  <header class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div>
+        <h1 class="text-2xl font-bold flex items-center gap-2">
+          <i class="fa-solid fa-graduation-cap"></i> Generator Perangkat Kurikulum Merdeka
+        </h1>
+        <p class="text-blue-100 text-xs sm:text-sm">Otomatisasi CP, ATP, TP, Prota, Promes, Modul Ajar, LKPD, Kuis & Rekap Nilai dengan Gemini AI</p>
+      </div>
+      
+      <!-- Status Badges -->
+      <div class="flex items-center gap-3">
+        <div id="gemini-status" class="flex items-center gap-1.5 px-3 py-1 bg-red-500/20 text-red-200 border border-red-400/30 text-xs rounded-full">
+          <span class="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span> Gemini: Unset
         </div>
-    </header>
-
-    <!-- Navigation Tabs -->
-    <div class="bg-white border-b border-slate-200 shadow-sm sticky top-16 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav class="flex space-x-2 md:space-x-8 overflow-x-auto custom-scrollbar text-sm py-1">
-                <button onclick="switchTab('tab-input')" id="nav-tab-input" class="tab-btn tab-active py-3 px-3 whitespace-nowrap flex items-center gap-2 transition">
-                    <i class="fa-solid fa-file-arrow-up"></i> 1. Input & Parameter
-                </button>
-                <button onclick="switchTab('tab-cptp')" id="nav-tab-cptp" class="tab-btn py-3 px-3 whitespace-nowrap flex items-center gap-2 transition text-slate-600 hover:text-indigo-600">
-                    <i class="fa-solid fa-bullseye"></i> 2. CP, TP & ATP
-                </button>
-                <button onclick="switchTab('tab-protapromes')" id="nav-tab-protapromes" class="tab-btn py-3 px-3 whitespace-nowrap flex items-center gap-2 transition text-slate-600 hover:text-indigo-600">
-                    <i class="fa-solid fa-calendar-days"></i> 3. Prota & Promes
-                </button>
-                <button onclick="switchTab('tab-rpp')" id="nav-tab-rpp" class="tab-btn py-3 px-3 whitespace-nowrap flex items-center gap-2 transition text-slate-600 hover:text-indigo-600">
-                    <i class="fa-solid fa-book-open"></i> 4. Modul Ajar (RPP)
-                </button>
-                <button onclick="switchTab('tab-lkpd')" id="nav-tab-lkpd" class="tab-btn py-3 px-3 whitespace-nowrap flex items-center gap-2 transition text-slate-600 hover:text-indigo-600">
-                    <i class="fa-solid fa-newspaper"></i> 5. LKPD & Media
-                </button>
-                <button onclick="switchTab('tab-rekap')" id="nav-tab-rekap" class="tab-btn py-3 px-3 whitespace-nowrap flex items-center gap-2 transition text-slate-600 hover:text-indigo-600">
-                    <i class="fa-solid fa-square-poll-vertical"></i> 6. Kuis & Rekap Nilai
-                </button>
-            </nav>
+        <div id="firebase-status" class="flex items-center gap-1.5 px-3 py-1 bg-red-500/20 text-red-200 border border-red-400/30 text-xs rounded-full">
+          <span class="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span> Firebase: Unset
         </div>
+        <button id="toggle-config-btn" onclick="toggleConfigPanel()" class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg text-xs font-semibold transition flex items-center gap-1">
+          <i class="fa-solid fa-gear text-sm"></i> Pengaturan Kunci
+        </button>
+      </div>
     </div>
 
-    <!-- Main Content Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
-
-        <!-- TAB 1: INPUT & PARAMETER -->
-        <section id="tab-input" class="tab-content block space-y-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Parameters Form -->
-                <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm space-y-4">
-                    <h2 class="font-bold text-slate-800 text-base border-b pb-3 flex items-center gap-2">
-                        <i class="fa-solid fa-sliders text-indigo-600"></i> Parameter Pembelajaran
-                    </h2>
-                    
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Mata Pelajaran</label>
-                        <input type="text" id="param-mapel" value="Informatika" class="w-full text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Fase / Kelas</label>
-                            <select id="param-fase" class="w-full text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                                <option value="Fase A (Kelas 1-2)">Fase A (Kelas 1-2)</option>
-                                <option value="Fase B (Kelas 3-4)">Fase B (Kelas 3-4)</option>
-                                <option value="Fase C (Kelas 5-6)">Fase C (Kelas 5-6)</option>
-                                <option value="Fase D (Kelas 7-9)" selected>Fase D (Kelas 7-9)</option>
-                                <option value="Fase E (Kelas 10)">Fase E (Kelas 10)</option>
-                                <option value="Fase F (Kelas 11-12)">Fase F (Kelas 11-12)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Semester</label>
-                            <select id="param-semester" class="w-full text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                                <option value="Ganjil (1)">Ganjil (1)</option>
-                                <option value="Genap (2)">Genap (2)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">JP / Minggu</label>
-                            <input type="number" id="param-jp" value="2" min="1" class="w-full text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Minggu Efektif</label>
-                            <input type="number" id="param-minggu" value="18" min="1" class="w-full text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Model Pembelajaran Utama</label>
-                        <select id="param-model" class="w-full text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                            <option value="Problem Based Learning (PBL)">Problem Based Learning (PBL)</option>
-                            <option value="Project Based Learning (PjBL)">Project Based Learning (PjBL)</option>
-                            <option value="Discovery / Inquiry Learning">Discovery / Inquiry Learning</option>
-                            <option value="Differentiated Learning (Berdiferensiasi)">Differentiated Learning</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Material Source Input -->
-                <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm lg:col-span-2 space-y-4 flex flex-col">
-                    <h2 class="font-bold text-slate-800 text-base border-b pb-3 flex items-center justify-between">
-                        <span class="flex items-center gap-2"><i class="fa-solid fa-file-text text-indigo-600"></i> Sumber Materi & Kurikulum</span>
-                        <span class="text-xs font-normal text-slate-500">Ketik Teks atau Upload File (.txt / .pdf)</span>
-                    </h2>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Upload File Dokumen Materi</label>
-                        <input type="file" id="file-input" accept=".txt,.pdf" onchange="handleFileUpload(event)" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
-                    </div>
-
-                    <div class="flex-1 flex flex-col">
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Isi Ringkasan Teks Materi / Silabus</label>
-                        <textarea id="materi-text" class="w-full flex-1 p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none custom-scrollbar min-h-[220px]" placeholder="Masukkan ringkasan materi, CP acuan, atau topik pembahasan di sini... Contoh: Algoritma dan Pemrograman Dasar, variabel, percabangan if-else, dan perulangan loop."></textarea>
-                    </div>
-
-                    <div class="pt-2">
-                        <button id="btn-generate" onclick="generateAllDevice()" class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 text-sm">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Seluruh Perangkat Ajar (AI Engine)
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 2: CP, TP, ATP -->
-        <section id="tab-cptp" class="tab-content hidden space-y-6">
-            <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-bullseye text-indigo-600"></i> Capaian & Tujuan Pembelajaran
-                </h2>
-                <button onclick="exportToExcel('CP_TP_ATP')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg transition flex items-center gap-2">
-                    <i class="fa-solid fa-file-excel"></i> Ekspor Excel
-                </button>
-            </div>
-
-            <!-- CP Card -->
-            <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-2">
-                <label class="block font-bold text-sm text-slate-700">1. Capaian Pembelajaran (CP) Elemen / Fase</label>
-                <textarea id="cp-text" oninput="updateDataFromUI()" class="w-full p-3 text-sm border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 min-h-[90px] custom-scrollbar"></textarea>
-            </div>
-
-            <!-- TP & ATP List Table -->
-            <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
-                <div class="flex justify-between items-center">
-                    <label class="block font-bold text-sm text-slate-700">2. Tujuan Pembelajaran (TP) & Alur (ATP)</label>
-                    <button onclick="addTPRow()" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-lg font-medium transition">
-                        + Tambah TP
-                    </button>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-100 text-slate-700 text-xs uppercase tracking-wider">
-                                <th class="p-3 border rounded-tl-lg w-16">Kode TP</th>
-                                <th class="p-3 border">Deskripsi Tujuan Pembelajaran (TP)</th>
-                                <th class="p-3 border w-32">Alokasi (JP)</th>
-                                <th class="p-3 border w-48">Materi Pokok</th>
-                                <th class="p-3 border w-16 text-center rounded-tr-lg">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tp-table-body">
-                            <!-- Rows injected by JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 3: PROTA & PROMES -->
-        <section id="tab-protapromes" class="tab-content hidden space-y-6">
-            <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-calendar-days text-indigo-600"></i> Program Tahunan (Prota) & Semester (Promes)
-                </h2>
-                <button onclick="exportToExcel('Prota_Promes')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg transition flex items-center gap-2">
-                    <i class="fa-solid fa-file-excel"></i> Ekspor Excel
-                </button>
-            </div>
-
-            <!-- Program Tahunan -->
-            <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-3">
-                <h3 class="font-bold text-sm text-slate-700">Program Tahunan (Prota)</h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm border-collapse">
-                        <thead>
-                            <tr class="bg-slate-100 text-slate-700 text-xs uppercase">
-                                <th class="p-3 border w-16">No</th>
-                                <th class="p-3 border">Materi / Alur Tujuan Pembelajaran</th>
-                                <th class="p-3 border w-28">Semester</th>
-                                <th class="p-3 border w-24">Alokasi JP</th>
-                            </tr>
-                        </thead>
-                        <tbody id="prota-table-body">
-                            <!-- Prota dynamic data -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Program Semester -->
-            <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-3">
-                <h3 class="font-bold text-sm text-slate-700">Program Semester (Promes) - Alokasi per Minggu</h3>
-                <div class="overflow-x-auto custom-scrollbar">
-                    <table class="w-full text-xs border-collapse min-w-[700px]">
-                        <thead>
-                            <tr class="bg-indigo-900 text-white text-center">
-                                <th class="p-2 border border-indigo-800 w-12" rowspan="2">No</th>
-                                <th class="p-2 border border-indigo-800 text-left" rowspan="2">Materi Pembelajaran</th>
-                                <th class="p-2 border border-indigo-800 w-16" rowspan="2">JP Total</th>
-                                <th class="p-2 border border-indigo-800" id="promes-month-header" colspan="18">Minggu Efektif Semester</th>
-                            </tr>
-                            <tr id="promes-week-header" class="bg-indigo-800 text-white text-center">
-                                <!-- Weeks 1 to 18 generated dynamically -->
-                            </tr>
-                        </thead>
-                        <tbody id="promes-table-body">
-                            <!-- Promes dynamic data -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 4: MODUL AJAR / RPP -->
-        <section id="tab-rpp" class="tab-content hidden space-y-6">
-            <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-book-open text-indigo-600"></i> Modul Ajar / RPP Dinamis
-                </h2>
-                <div class="flex gap-2">
-                    <button onclick="exportModulWord()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded-lg transition flex items-center gap-2">
-                        <i class="fa-solid fa-file-word"></i> Salin/Cetak Doc
-                    </button>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm space-y-6 text-sm" id="rpp-container">
-                <!-- RPP Content Editable Sections -->
-                <div class="border-b pb-4">
-                    <h3 class="font-bold text-base text-indigo-900 mb-2">I. INFORMASI UMUM</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500">Mata Pelajaran & Fase</label>
-                            <input type="text" id="rpp-info-mapel" oninput="updateDataFromUI()" class="w-full p-2 border rounded mt-1 bg-slate-50 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500">Model & Metode Pembelajaran</label>
-                            <input type="text" id="rpp-info-model" oninput="updateDataFromUI()" class="w-full p-2 border rounded mt-1 bg-slate-50 text-sm">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="border-b pb-4">
-                    <h3 class="font-bold text-base text-indigo-900 mb-2">II. KOMPONEN INTI</h3>
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500 mb-1">A. Pemahaman Bermakna</label>
-                            <textarea id="rpp-pemahaman" oninput="updateDataFromUI()" class="w-full p-2.5 border rounded-lg bg-slate-50 custom-scrollbar" rows="2"></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500 mb-1">B. Pertanyaan Pemantik</label>
-                            <textarea id="rpp-pemantik" oninput="updateDataFromUI()" class="w-full p-2.5 border rounded-lg bg-slate-50 custom-scrollbar" rows="2"></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <h3 class="font-bold text-base text-indigo-900 mb-2">III. LANGKAH-LANGKAH KEGIATAN PEMBELAJARAN</h3>
-                    <div class="space-y-4">
-                        <div class="p-4 bg-slate-50 rounded-lg border">
-                            <span class="font-semibold text-indigo-700 block mb-1">1. Kegiatan Pendahuluan (10-15 Menit)</span>
-                            <textarea id="rpp-pendahuluan" oninput="updateDataFromUI()" class="w-full p-2.5 border rounded-lg bg-white text-sm custom-scrollbar" rows="3"></textarea>
-                        </div>
-                        <div class="p-4 bg-slate-50 rounded-lg border">
-                            <span class="font-semibold text-indigo-700 block mb-1">2. Kegiatan Inti (Sesuai Sintaks Model)</span>
-                            <textarea id="rpp-inti" oninput="updateDataFromUI()" class="w-full p-2.5 border rounded-lg bg-white text-sm custom-scrollbar" rows="6"></textarea>
-                        </div>
-                        <div class="p-4 bg-slate-50 rounded-lg border">
-                            <span class="font-semibold text-indigo-700 block mb-1">3. Kegiatan Penutup (10-15 Menit)</span>
-                            <textarea id="rpp-penutup" oninput="updateDataFromUI()" class="w-full p-2.5 border rounded-lg bg-white text-sm custom-scrollbar" rows="3"></textarea>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 5: LKPD & MEDIA -->
-        <section id="tab-lkpd" class="tab-content hidden space-y-6">
-            <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-newspaper text-indigo-600"></i> LKPD & Rekomendasi Media
-                </h2>
-                <button onclick="exportToExcel('LKPD_Media')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg transition flex items-center gap-2">
-                    <i class="fa-solid fa-file-excel"></i> Ekspor Excel
-                </button>
-            </div>
-
-            <!-- Media Recommendations -->
-            <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-3">
-                <h3 class="font-bold text-sm text-slate-700 flex items-center gap-2">
-                    <i class="fa-solid fa-photo-film text-indigo-600"></i> Rekomendasi Media & Alat Pembelajaran
-                </h3>
-                <textarea id="media-text" oninput="updateDataFromUI()" class="w-full p-3 border rounded-lg text-sm bg-slate-50 custom-scrollbar" rows="3" placeholder="Contoh: Slide presentasi Canva, Video YouTube simulasi, software Scratch/Python, Kartu instruksi."></textarea>
-            </div>
-
-            <!-- LKPD Document Editor -->
-            <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm space-y-4">
-                <h3 class="font-bold text-base text-slate-800 border-b pb-2">Lembar Kerja Peserta Didik (LKPD)</h3>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Judul Aktivitas LKPD</label>
-                        <input type="text" id="lkpd-judul" oninput="updateDataFromUI()" class="w-full p-2.5 border rounded-lg text-sm bg-slate-50">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Petunjuk Pengerjaan</label>
-                        <input type="text" id="lkpd-petunjuk" oninput="updateDataFromUI()" class="w-full p-2.5 border rounded-lg text-sm bg-slate-50">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Soal / Tugas Aktivitas Siswa</label>
-                    <textarea id="lkpd-tugas" oninput="updateDataFromUI()" class="w-full p-3 border rounded-lg text-sm bg-slate-50 custom-scrollbar" rows="6"></textarea>
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 6: KUIS & REKAP NILAI -->
-        <section id="tab-rekap" class="tab-content hidden space-y-6">
-            <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-square-poll-vertical text-indigo-600"></i> Kuis Evaluasi & Rekap Nilai Siswa
-                </h2>
-                <button onclick="exportToExcel('Rekap_Nilai')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg transition flex items-center gap-2">
-                    <i class="fa-solid fa-file-excel"></i> Ekspor Rekap Nilai (.xlsx)
-                </button>
-            </div>
-
-            <!-- Generated Quiz / Questions -->
-            <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-3">
-                <h3 class="font-bold text-sm text-slate-700 flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-indigo-600"></i> Bank Soal Kuis Evaluasi (AI Generated)
-                </h3>
-                <textarea id="quiz-text" oninput="updateDataFromUI()" class="w-full p-3 border rounded-lg text-sm bg-slate-50 custom-scrollbar" rows="6" placeholder="Daftar soal kuis pilihan ganda / esai..."></textarea>
-            </div>
-
-            <!-- Rekap Nilai Table -->
-            <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h3 class="font-bold text-sm text-slate-800">Tabel Rekapitulasi Nilai Siswa Interaktif</h3>
-                        <p class="text-xs text-slate-500">Siswa dapat langsung diinput dan nilai rerata dihitung otomatis.</p>
-                    </div>
-                    <button onclick="addStudentRow()" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-lg font-medium transition">
-                        + Tambah Siswa
-                    </button>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm border-collapse">
-                        <thead>
-                            <tr class="bg-slate-100 text-slate-700 text-xs uppercase">
-                                <th class="p-3 border w-12 text-center">No</th>
-                                <th class="p-3 border">Nama Siswa</th>
-                                <th class="p-3 border w-28 text-center">Nilai LKPD</th>
-                                <th class="p-3 border w-28 text-center">Nilai Kuis</th>
-                                <th class="p-3 border w-28 text-center bg-indigo-50">Rata-Rata</th>
-                                <th class="p-3 border w-16 text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="nilai-table-body">
-                            <!-- Student Rows injected by JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-white hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-xl text-slate-800 flex flex-col items-center max-w-sm text-center space-y-4">
-            <i class="fa-solid fa-circle-notch fa-spin text-4xl text-indigo-600"></i>
-            <div>
-                <h3 class="font-bold text-lg">AI Memproses Perangkat Ajar</h3>
-                <p class="text-xs text-slate-500 mt-1">Menganalisis materi & menyusun CP, TP, Prota, RPP, LKPD secara otomatis...</p>
-            </div>
+    <!-- Collapsible Config Panel -->
+    <div id="config-panel" class="hidden bg-slate-900 border-t border-slate-700/50 p-4 sm:p-6 text-slate-200">
+      <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">
+            <i class="fa-solid fa-key text-yellow-400"></i> Gemini API Key
+          </label>
+          <input type="password" id="input-gemini-key" placeholder="AIzaSy..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+          <p class="text-[10px] text-slate-400 mt-1">Dapatkan API Key di Google AI Studio (aistudio.google.com)</p>
         </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">
+            <i class="fa-solid fa-fire text-orange-400"></i> Firebase Config (JSON Format)
+          </label>
+          <textarea id="input-firebase-config" rows="3" placeholder='{"apiKey":"...", "projectId":"...", ...}' class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"></textarea>
+        </div>
+      </div>
+      <div class="max-w-7xl mx-auto mt-4 flex justify-end gap-2">
+        <button onclick="saveUserConfig()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow">
+          <i class="fa-solid fa-floppy-disk"></i> Simpan Konfigurasi
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVIGATION TABS -->
+  <nav class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-20">
+    <div class="max-w-7xl mx-auto px-4 flex overflow-x-auto custom-scrollbar">
+      <button onclick="switchTab('input-tab')" id="tab-input-tab" class="tab-button tab-active py-3.5 px-4 text-xs font-medium whitespace-nowrap flex items-center gap-2">
+        <i class="fa-solid fa-file-pen text-blue-600"></i> 1. Input & Konfigurasi
+      </button>
+      <button onclick="switchTab('cpatp-tab')" id="tab-cpatp-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
+        <i class="fa-solid fa-sitemap"></i> 2. CP, TP & ATP
+      </button>
+      <button onclick="switchTab('protapromes-tab')" id="tab-protapromes-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
+        <i class="fa-solid fa-calendar-days"></i> 3. Prota & Promes
+      </button>
+      <button onclick="switchTab('modul-tab')" id="tab-modul-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
+        <i class="fa-solid fa-book-open"></i> 4. Modul Ajar / RPP
+      </button>
+      <button onclick="switchTab('lkpd-tab')" id="tab-lkpd-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
+        <i class="fa-solid fa-flask"></i> 5. LKPD & Media
+      </button>
+      <button onclick="switchTab('kuisrekap-tab')" id="tab-kuisrekap-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
+        <i class="fa-solid fa-chart-simple"></i> 6. Kuis & Rekap Nilai
+      </button>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="hidden fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs border border-slate-700 animate-bounce">
+      <i id="toast-icon" class="fa-solid fa-info-circle text-blue-400 text-lg"></i>
+      <span id="toast-message">Notifikasi</span>
     </div>
 
-    <!-- Firebase SDK Modules -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <!-- TAB 1: INPUT & KONFIGURASI MATERI -->
+    <section id="input-tab" class="tab-content space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-blue-600"></i> Pengaturan Parameter Kurikulum Merdeka
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Mata Pelajaran</label>
+            <input type="text" id="input-mapel" value="Informatika" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Fase / Kelas</label>
+            <select id="input-fase" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <option value="Fase D (Kelas 7-9 SMP)">Fase D (Kelas 7-9 SMP)</option>
+              <option value="Fase E (Kelas 10 SMA)">Fase E (Kelas 10 SMA)</option>
+              <option value="Fase F (Kelas 11-12 SMA)">Fase F (Kelas 11-12 SMA)</option>
+              <option value="Fase A (Kelas 1-2 SD)">Fase A (Kelas 1-2 SD)</option>
+              <option value="Fase B (Kelas 3-4 SD)">Fase B (Kelas 3-4 SD)</option>
+              <option value="Fase C (Kelas 5-6 SD)">Fase C (Kelas 5-6 SD)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Semester</label>
+            <select id="input-semester" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <option value="1 (Ganjil)">1 (Ganjil)</option>
+              <option value="2 (Genap)">2 (Genap)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Model Pembelajaran</label>
+            <select id="input-model" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <option value="Project-Based Learning (PjBL)">Project-Based Learning (PjBL)</option>
+              <option value="Problem-Based Learning (PBL)">Problem-Based Learning (PBL)</option>
+              <option value="Discovery Learning">Discovery Learning</option>
+              <option value="Inquiry Learning">Inquiry Learning</option>
+            </select>
+          </div>
+        </div>
 
-        // Firebase Configuration setup
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'kurikulum-merdeka-app';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "dummy-key",
-            authDomain: "dummy.firebaseapp.com",
-            projectId: "dummy-project"
+        <h2 class="text-base font-bold text-slate-800 mb-2 flex items-center gap-2">
+          <i class="fa-solid fa-file-text text-blue-600"></i> Input Ringkasan / Teks Materi Utama
+        </h2>
+        <p class="text-xs text-slate-500 mb-3">Unggah dokumen (PDF, DOCX, TXT, Gambar) atau tempelkan silabus/materi ringkas secara manual.</p>
+        
+        <!-- File Upload Section -->
+        <div class="mb-4 p-4 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 hover:bg-slate-100 transition text-center relative cursor-pointer" onclick="document.getElementById('file-upload').click()">
+          <input type="file" id="file-upload" accept=".pdf,.docx,.doc,.txt,image/*" class="hidden" onchange="handleFileUpload(event)">
+          <div class="space-y-1">
+            <i class="fa-solid fa-cloud-arrow-up text-3xl text-blue-500"></i>
+            <p class="text-xs font-semibold text-slate-700">Klik atau Drag & Drop file ke sini untuk mengunggah</p>
+            <p class="text-[10px] text-slate-400">Mendukung format PDF, Word (.docx), TXT, atau Gambar (PNG, JPG)</p>
+          </div>
+          <div id="file-loading" class="hidden absolute inset-0 bg-white/90 rounded-xl flex items-center justify-center gap-2 text-xs font-semibold text-blue-600">
+            <i class="fa-solid fa-spinner animate-spin text-lg"></i> Membaca isi file...
+          </div>
+        </div>
+
+        <textarea id="input-materi" rows="6" placeholder="Contoh: Bab Algoritma dan Pemrograman Python Dasar. Membahas variabel, tipe data, kondisinal (if-else), perulangan (for/while), dan pembuatan program sederhana..." class="w-full border border-slate-300 rounded-lg p-3 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none leading-relaxed"></textarea>
+
+        <div class="mt-6 flex flex-wrap justify-between items-center gap-4">
+          <button onclick="saveDataToFirebase()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-xs font-semibold shadow transition flex items-center gap-2">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Simpan Draf ke Firestore
+          </button>
+          
+          <button onclick="generateAllWithGemini()" id="btn-generate-all" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-xs font-semibold shadow-md transition flex items-center gap-2">
+            <i class="fa-solid fa-wand-magic-sparkles text-yellow-300"></i> Generate Perangkat Lengkap (Detail)
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: CP, TP & ATP -->
+    <section id="cpatp-tab" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-network-wired text-blue-600"></i> Capaian Pembelajaran (CP) & Tujuan Pembelajaran (TP)
+          </h2>
+          <button onclick="window.print()" class="text-xs text-blue-600 border border-blue-200 hover:bg-blue-50 px-3 py-1.5 rounded-lg font-medium transition no-print">
+            <i class="fa-solid fa-print"></i> Cetak / Simpan PDF
+          </button>
+        </div>
+        
+        <div id="cp-content" class="space-y-4 text-xs text-slate-700">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <h3 class="font-bold text-slate-900 mb-1">Capaian Pembelajaran (CP) Elemen:</h3>
+            <p id="output-cp" class="text-slate-600 leading-relaxed italic">Belum digenerate. Silakan klik tombol 'Generate Perangkat Lengkap' di Tab 1.</p>
+          </div>
+
+          <h3 class="font-bold text-slate-900 pt-2">Alur Tujuan Pembelajaran (ATP):</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse border border-slate-200 rounded-lg overflow-hidden">
+              <thead class="bg-slate-100 text-slate-700 text-[11px] uppercase">
+                <tr>
+                  <th class="p-3 border-b">Kode TP</th>
+                  <th class="p-3 border-b">Tujuan Pembelajaran (TP)</th>
+                  <th class="p-3 border-b">Materi Pokok</th>
+                  <th class="p-3 border-b">Alokasi Waktu (JP)</th>
+                </tr>
+              </thead>
+              <tbody id="table-atp-body" class="divide-y divide-slate-200">
+                <tr><td colspan="4" class="p-4 text-center text-slate-400">Data ATP kosong</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: PROTA & PROMES -->
+    <section id="protapromes-tab" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-calendar-check text-blue-600"></i> Program Tahunan (Prota) & Program Semester (Promes)
+        </h2>
+        <div class="space-y-6">
+          <div>
+            <h3 class="font-semibold text-xs text-slate-700 mb-2">Rancangan Program Semester (Promes)</h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse border border-slate-200">
+                <thead class="bg-slate-100 text-slate-700 text-[11px]">
+                  <tr>
+                    <th class="p-3 border">No</th>
+                    <th class="p-3 border">Materi / TP</th>
+                    <th class="p-3 border text-center">JML JP</th>
+                    <th class="p-3 border text-center">Bulan 1</th>
+                    <th class="p-3 border text-center">Bulan 2</th>
+                    <th class="p-3 border text-center">Bulan 3</th>
+                    <th class="p-3 border text-center">Bulan 4</th>
+                  </tr>
+                </thead>
+                <tbody id="promes-table-body" class="text-xs divide-y divide-slate-200">
+                  <tr><td colspan="7" class="p-4 text-center text-slate-400">Data Promes Belum Digenerate</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: MODUL AJAR / RPP -->
+    <section id="modul-tab" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+        <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-book text-blue-600"></i> Draf Modul Ajar (RPP Plus)
+        </h2>
+        <div id="modul-ajar-container" class="prose max-w-none text-xs text-slate-700 leading-relaxed space-y-4">
+          <p class="text-slate-400 italic">Klik generate di tab pertama untuk menyusun modul ajar otomatis...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: LKPD & MEDIA -->
+    <section id="lkpd-tab" class="tab-content hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- LKPD -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+          <h2 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-file-pen text-blue-600"></i> Lembar Kerja Peserta Didik (LKPD)
+          </h2>
+          <div id="lkpd-container" class="text-xs text-slate-700 space-y-3">
+            <p class="text-slate-400 italic">Belum ada LKPD yang digenerate.</p>
+          </div>
+        </div>
+        <!-- Media Pembelajaran -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+          <h2 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-photo-film text-blue-600"></i> Rencana Media Pembelajaran
+          </h2>
+          <div id="media-container" class="text-xs text-slate-700 space-y-3">
+            <p class="text-slate-400 italic">Belum ada instruksi media pembelajaran.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: KUIS & REKAP NILAI INTERAKTIF -->
+    <section id="kuisrekap-tab" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
+        <!-- Kuis Bank Soal -->
+        <div>
+          <h2 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-circle-question text-blue-600"></i> Bank Soal & Kuis (Pilihan Ganda & Essay)
+          </h2>
+          <div id="kuis-container" class="text-xs text-slate-700 space-y-4">
+            <p class="text-slate-400 italic">Belum ada kuis yang digenerate.</p>
+          </div>
+        </div>
+
+        <hr class="border-slate-200">
+
+        <!-- Rekap Nilai Interactive Table -->
+        <div>
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-table text-emerald-600"></i> Rekap Nilai Siswa Interaktif
+            </h2>
+            <div class="flex gap-2">
+              <button onclick="addRowSiswa()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+                + Tambah Siswa
+              </button>
+              <button onclick="exportNilaiToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-file-excel"></i> Ekspor Excel
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table id="table-rekap" class="w-full text-left border-collapse border border-slate-200 rounded-lg">
+              <thead class="bg-slate-100 text-slate-700 text-[11px] uppercase">
+                <tr>
+                  <th class="p-3 border">Nama Siswa</th>
+                  <th class="p-3 border w-24">Formatif 1</th>
+                  <th class="p-3 border w-24">Formatif 2</th>
+                  <th class="p-3 border w-24">Sumatif (PAS)</th>
+                  <th class="p-3 border w-28 bg-emerald-50 text-emerald-800">Rata-Rata</th>
+                  <th class="p-3 border w-16 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="rekap-body" class="text-xs divide-y divide-slate-200">
+                <tr>
+                  <td class="p-2 border"><input type="text" value="Ahmad Fauzi" class="w-full bg-transparent p-1 focus:bg-white focus:outline-none"></td>
+                  <td class="p-2 border"><input type="number" value="85" oninput="calculateAverages()" class="val-f1 w-full bg-transparent p-1 text-center focus:bg-white focus:outline-none"></td>
+                  <td class="p-2 border"><input type="number" value="80" oninput="calculateAverages()" class="val-f2 w-full bg-transparent p-1 text-center focus:bg-white focus:outline-none"></td>
+                  <td class="p-2 border"><input type="number" value="90" oninput="calculateAverages()" class="val-sum w-full bg-transparent p-1 text-center focus:bg-white focus:outline-none"></td>
+                  <td class="p-2 border bg-emerald-50/50 font-bold text-center text-emerald-700 val-avg">85.0</td>
+                  <td class="p-2 border text-center">
+                    <button onclick="deleteRow(this)" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    /* ==========================================================================
+       1. GLOBAL CONFIGURATION & INITIALIZATION
+       ========================================================================== */
+    const DEFAULT_GEMINI_API_KEY = "PASTE_YOUR_GEMINI_API_KEY_HERE";
+    const DEFAULT_FIREBASE_CONFIG = null;
+
+    let activeGeminiKey = localStorage.getItem('gemini_key') || DEFAULT_GEMINI_API_KEY;
+    let activeFirebaseConfig = localStorage.getItem('firebase_config') ? JSON.parse(localStorage.getItem('firebase_config')) : DEFAULT_FIREBASE_CONFIG;
+    let db = null;
+
+    // Set PDF.js worker
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initConfigurations();
+    });
+
+    function initConfigurations() {
+      const geminiStatus = document.getElementById('gemini-status');
+      const firebaseStatus = document.getElementById('firebase-status');
+
+      if (activeGeminiKey && activeGeminiKey !== "PASTE_YOUR_GEMINI_API_KEY_HERE") {
+        geminiStatus.className = "flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 text-xs rounded-full";
+        geminiStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Gemini: Ready`;
+        document.getElementById('input-gemini-key').value = activeGeminiKey;
+      }
+
+      if (activeFirebaseConfig) {
+        try {
+          if (!firebase.apps.length) {
+            firebase.initializeApp(activeFirebaseConfig);
+          }
+          db = firebase.firestore();
+          firebaseStatus.className = "flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 text-xs rounded-full";
+          firebaseStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Firebase: Ready`;
+          document.getElementById('input-firebase-config').value = JSON.stringify(activeFirebaseConfig, null, 2);
+        } catch (e) {
+          console.error("Firebase init error:", e);
+        }
+      }
+    }
+
+    function toggleConfigPanel() {
+      const panel = document.getElementById('config-panel');
+      panel.classList.toggle('hidden');
+    }
+
+    function saveUserConfig() {
+      const keyInput = document.getElementById('input-gemini-key').value.trim();
+      const fbInput = document.getElementById('input-firebase-config').value.trim();
+
+      if (keyInput) {
+        localStorage.setItem('gemini_key', keyInput);
+        activeGeminiKey = keyInput;
+      }
+
+      if (fbInput) {
+        try {
+          const parsed = JSON.parse(fbInput);
+          localStorage.setItem('firebase_config', JSON.stringify(parsed));
+          activeFirebaseConfig = parsed;
+        } catch (e) {
+          showToast("Format JSON Firebase tidak valid", "error");
+          return;
+        }
+      }
+
+      initConfigurations();
+      toggleConfigPanel();
+      showToast("Konfigurasi tersimpan!", "success");
+    }
+
+    /* ==========================================================================
+       2. FIREBASE & FILE HANDLING
+       ========================================================================== */
+    async function saveDataToFirebase() {
+      if (!db) {
+        showToast("Firebase belum terkonfigurasi secara valid", "error");
+        return;
+      }
+      try {
+        const payload = {
+          mapel: document.getElementById('input-mapel').value,
+          fase: document.getElementById('input-fase').value,
+          semester: document.getElementById('input-semester').value,
+          model: document.getElementById('input-model').value,
+          materi: document.getElementById('input-materi').value,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
+        await db.collection('perangkat_pembelajaran').doc('draft_terakhir').set(payload, { merge: true });
+        showToast("Draf berhasil disimpan ke Firebase!", "success");
+      } catch (err) {
+        showToast("Gagal menyimpan ke Firebase: " + err.message, "error");
+      }
+    }
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+    async function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
 
-        let currentUser = null;
-        let isSaving = false;
+      const loader = document.getElementById('file-loading');
+      loader.classList.remove('hidden');
 
-        // Dynamic State Object
-        window.appState = {
-            paramMapel: "Informatika",
-            paramFase: "Fase D (Kelas 7-9)",
-            paramSemester: "Ganjil (1)",
-            paramJp: 2,
-            paramMinggu: 18,
-            paramModel: "Problem Based Learning (PBL)",
-            materiText: "",
-            cpText: "",
-            tpList: [
-                { id: 'TP01', desc: 'Memahami konsep dasar variabel dan tipe data', jp: 4, materi: 'Variabel & Data' },
-                { id: 'TP02', desc: 'Menerapkan logika percabangan kondisional', jp: 6, materi: 'Percabangan (If-Else)' }
-            ],
-            rppInfoMapel: "Informatika - Fase D",
-            rppInfoModel: "Problem Based Learning (PBL)",
-            rppPemahaman: "Pemrograman membantu menyelesaikan masalah sehari-hari secara logis dan terstruktur.",
-            rppPemantik: "Bagaimana komputer bisa mengambil keputusan seperti memilih rute tercepat?",
-            rppPendahuluan: "1. Salam, berdoa, dan presensi.\n2. Apersepsi tentang logika berpikir.\n3. Menyampaikan tujuan pembelajaran.",
-            rppInti: "1. Orientasi siswa pada masalah pemrograman.\n2. Mengorganisasi siswa belajar berkelompok.\n3. Membimbing penyelidikan kode sederhana.\n4. Mengembangkan dan menyajikan hasil project.",
-            rppPenutup: "1. Refleksi pembelajaran.\n2. Kesimpulan materi.\n3. Penugasan & penutup.",
-            mediaText: "1. Slide Canva Interaktif\n2. Editor Kode Online (Replit/Scratch)\n3. Lembar Kerja Cetak",
-            lkpdJudul: "Aktivitas 1: Menganalisis Logika Percabangan",
-            lkpdPetunjuk: "Diskusikan bersama kelompok 3-4 orang. Selesaikan soal alur program berikut.",
-            lkpdTugas: "1. Tuliskan algoritma menentukan kelulusan nilai >= 75.\n2. Buat flowchart sederhana dari algoritma tersebut.",
-            quizText: "1. Apa fungsi dari variabel dalam pemrograman?\n2. Sebutkan contoh kondisi yang membutuhkan percabangan if-else!",
-            rekapSiswa: [
-                { id: 1, nama: "Ahmad Dani", nilaiLkpd: 85, nilaiKuis: 90 },
-                { id: 2, nama: "Budi Santoso", nilaiLkpd: 78, nilaiKuis: 82 }
-            ]
-        };
+      try {
+        const fileType = file.name.split('.').pop().toLowerCase();
+        let extractedText = "";
 
-        // Initialize Authentication & Realtime Listener
-        async function initAuth() {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    const userCredential = await signInWithCustomToken(auth, __initial_auth_token);
-                    currentUser = userCredential.user;
-                } else {
-                    const userCredential = await signInAnonymously(auth);
-                    currentUser = userCredential.user;
-                }
-                document.getElementById('sync-status').innerHTML = `<i class="fa-solid fa-cloud-check text-green-400 mr-2"></i> Synced (${currentUser.uid.substring(0, 5)}...)`;
-                
-                setupRealtimeListener();
-            } catch (err) {
-                console.warn("Firebase auth warning (Local fallback active):", err);
-                document.getElementById('sync-status').innerHTML = `<i class="fa-solid fa-hard-drive text-amber-400 mr-2"></i> Local Mode`;
-            }
+        if (fileType === 'txt') {
+          extractedText = await file.text();
+        } else if (fileType === 'pdf') {
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          let textParts = [];
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            const strings = content.items.map(item => item.str);
+            textParts.push(strings.join(' '));
+          }
+          extractedText = textParts.join('\n\n');
+        } else if (fileType === 'docx' || fileType === 'doc') {
+          const arrayBuffer = await file.arrayBuffer();
+          const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+          extractedText = result.value;
+        } else if (file.type.startsWith('image/')) {
+          showToast("Membaca teks dari gambar memerlukan Gemini AI...", "info");
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            document.getElementById('input-materi').value = `[File Gambar Terunggah: ${file.name}]\n(Catatan: Untuk analisis visual gambar penuh, klik tombol Generate dengan API Key aktif)`;
+          };
+          reader.readAsDataURL(file);
+          loader.classList.add('hidden');
+          return;
+        } else {
+          showToast("Format file tidak didukung. Gunakan PDF, DOCX, TXT, atau Gambar.", "error");
+          loader.classList.add('hidden');
+          return;
         }
 
-        function setupRealtimeListener() {
-            if (!currentUser) return;
-            const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'perangkat_ajar', 'current');
-            
-            onSnapshot(docRef, (docSnap) => {
-                if (docSnap.exists() && !isSaving) {
-                    const cloudData = docSnap.data();
-                    if (cloudData.appState) {
-                        window.appState = { ...window.appState, ...cloudData.appState };
-                        renderAllDataToUI();
-                    }
-                }
-            }, (error) => {
-                console.error("Firestore onSnapshot error:", error);
-            });
+        if (extractedText.trim()) {
+          const area = document.getElementById('input-materi');
+          area.value = (area.value ? area.value + "\n\n" : "") + extractedText;
+          showToast(`Berhasil mengekstrak teks dari file ${file.name}`, "success");
+        } else {
+          showToast("Tidak ada teks yang dapat dibaca dari file ini.", "error");
         }
+      } catch (err) {
+        console.error("File Read Error:", err);
+        showToast("Gagal membaca file: " + err.message, "error");
+      } finally {
+        loader.classList.add('hidden');
+        event.target.value = '';
+      }
+    }
 
-        window.saveToCloud = async function() {
-            window.updateDataFromUI();
-            if (!currentUser) {
-                alert("Penyimpanan lokal berhasil dikumpulkan.");
-                return;
-            }
+    /* ==========================================================================
+       3. GEMINI AI GENERATION API CALL
+       ========================================================================== */
+    async function generateAllWithGemini() {
+      if (!activeGeminiKey || activeGeminiKey === "PASTE_YOUR_GEMINI_API_KEY_HERE") {
+        showToast("Harap isi Gemini API Key di panel Konfigurasi!", "error");
+        toggleConfigPanel();
+        return;
+      }
 
-            isSaving = true;
-            try {
-                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'perangkat_ajar', 'current');
-                await setDoc(docRef, {
-                    appState: window.appState,
-                    updatedAt: new Date().toISOString()
-                }, { merge: true });
-                
-                const syncElem = document.getElementById('sync-status');
-                syncElem.innerHTML = `<i class="fa-solid fa-check text-green-400 mr-2"></i> Saved Realtime!`;
-                setTimeout(() => {
-                    syncElem.innerHTML = `<i class="fa-solid fa-cloud-check text-green-400 mr-2"></i> Cloud Synced`;
-                }, 2000);
-            } catch (err) {
-                console.error("Save to cloud error:", err);
-            } finally {
-                isSaving = false;
-            }
-        };
+      const mapel = document.getElementById('input-mapel').value;
+      const fase = document.getElementById('input-fase').value;
+      const semester = document.getElementById('input-semester').value;
+      const model = document.getElementById('input-model').value;
+      const materi = document.getElementById('input-materi').value;
 
-        window.addEventListener('DOMContentLoaded', () => {
-            initAuth();
-            renderAllDataToUI();
-        });
-    </script>
+      if (!materi.trim()) {
+        showToast("Harap masukkan uraian materi terlebih dahulu!", "error");
+        return;
+      }
 
-    <!-- Application Business Logic JS -->
-    <script>
-        // Tab Switcher
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('tab-active');
-                btn.classList.add('text-slate-600');
-            });
+      const btn = document.getElementById('btn-generate-all');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Memproses dengan Gemini AI...`;
 
-            document.getElementById(tabId).classList.remove('hidden');
-            const activeBtn = document.getElementById('nav-' + tabId);
-            if (activeBtn) {
-                activeBtn.classList.add('tab-active');
-                activeBtn.classList.remove('text-slate-600');
-            }
-        }
+      const promptSystem = `Anda adalah pakar pengembang kurikulum Merdeka di Indonesia.
+Berdasarkan parameter berikut:
+- Mata Pelajaran: ${mapel}
+- Fase/Kelas: ${fase}
+- Semester: ${semester}
+- Model Pembelajaran: ${model}
+- Ringkasan Materi: ${materi}
 
-        // File Reader Handler (TXT / PDF)
-        async function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+Instruksi Tambahan: Buatkan hasil yang **sangat lengkap, detail, dan komprehensif**. Jangan melakukan penyingkatan berlebihan.
 
-            if (file.type === "text/plain") {
-                const text = await file.text();
-                document.getElementById('materi-text').value = text;
-            } else if (file.type === "application/pdf") {
-                try {
-                    const arrayBuffer = await file.arrayBuffer();
-                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                    let fullText = "";
-                    for (let i = 1; i <= Math.min(pdf.numPages, 10); i++) {
-                        const page = await pdf.getPage(i);
-                        const textContent = await page.getTextContent();
-                        fullText += textContent.items.map(item => item.str).join(" ") + "\n";
-                    }
-                    document.getElementById('materi-text').value = fullText;
-                } catch (err) {
-                    alert("Gagal membaca file PDF. Silakan copy-paste teks secara langsung.");
-                }
-            } else {
-                alert("Format file tidak didukung. Harap upload .txt atau .pdf");
-            }
-        }
-
-        // Update Global State from UI Controls
-        function updateDataFromUI() {
-            const state = window.appState;
-            state.paramMapel = document.getElementById('param-mapel').value;
-            state.paramFase = document.getElementById('param-fase').value;
-            state.paramSemester = document.getElementById('param-semester').value;
-            state.paramJp = parseInt(document.getElementById('param-jp').value) || 2;
-            state.paramMinggu = parseInt(document.getElementById('param-minggu').value) || 18;
-            state.paramModel = document.getElementById('param-model').value;
-            state.materiText = document.getElementById('materi-text').value;
-
-            state.cpText = document.getElementById('cp-text').value;
-
-            state.rppInfoMapel = document.getElementById('rpp-info-mapel').value;
-            state.rppInfoModel = document.getElementById('rpp-info-model').value;
-            state.rppPemahaman = document.getElementById('rpp-pemahaman').value;
-            state.rppPemantik = document.getElementById('rpp-pemantik').value;
-            state.rppPendahuluan = document.getElementById('rpp-pendahuluan').value;
-            state.rppInti = document.getElementById('rpp-inti').value;
-            state.rppPenutup = document.getElementById('rpp-penutup').value;
-
-            state.mediaText = document.getElementById('media-text').value;
-            state.lkpdJudul = document.getElementById('lkpd-judul').value;
-            state.lkpdPetunjuk = document.getElementById('lkpd-petunjuk').value;
-            state.lkpdTugas = document.getElementById('lkpd-tugas').value;
-            state.quizText = document.getElementById('quiz-text').value;
-
-            renderProtaPromesTables();
-        }
-
-        // Render UI from Current State
-        function renderAllDataToUI() {
-            const state = window.appState;
-            document.getElementById('param-mapel').value = state.paramMapel || '';
-            document.getElementById('param-fase').value = state.paramFase || 'Fase D (Kelas 7-9)';
-            document.getElementById('param-semester').value = state.paramSemester || 'Ganjil (1)';
-            document.getElementById('param-jp').value = state.paramJp || 2;
-            document.getElementById('param-minggu').value = state.paramMinggu || 18;
-            document.getElementById('param-model').value = state.paramModel || 'Problem Based Learning (PBL)';
-            document.getElementById('materi-text').value = state.materiText || '';
-
-            document.getElementById('cp-text').value = state.cpText || '';
-
-            document.getElementById('rpp-info-mapel').value = state.rppInfoMapel || '';
-            document.getElementById('rpp-info-model').value = state.rppInfoModel || '';
-            document.getElementById('rpp-pemahaman').value = state.rppPemahaman || '';
-            document.getElementById('rpp-pemantik').value = state.rppPemantik || '';
-            document.getElementById('rpp-pendahuluan').value = state.rppPendahuluan || '';
-            document.getElementById('rpp-inti').value = state.rppInti || '';
-            document.getElementById('rpp-penutup').value = state.rppPenutup || '';
-
-            document.getElementById('media-text').value = state.mediaText || '';
-            document.getElementById('lkpd-judul').value = state.lkpdJudul || '';
-            document.getElementById('lkpd-petunjuk').value = state.lkpdPetunjuk || '';
-            document.getElementById('lkpd-tugas').value = state.lkpdTugas || '';
-            document.getElementById('quiz-text').value = state.quizText || '';
-
-            renderTPTable();
-            renderProtaPromesTables();
-            renderRekapNilaiTable();
-        }
-
-        // Render TP Table Rows
-        function renderTPTable() {
-            const tbody = document.getElementById('tp-table-body');
-            tbody.innerHTML = '';
-
-            window.appState.tpList.forEach((tp, idx) => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50";
-                tr.innerHTML = `
-                    <td class="p-2 border"><input type="text" value="${tp.id}" onchange="updateTPItem(${idx}, 'id', this.value)" class="w-full p-1 border rounded text-xs font-mono"></td>
-                    <td class="p-2 border"><input type="text" value="${tp.desc}" onchange="updateTPItem(${idx}, 'desc', this.value)" class="w-full p-1 border rounded text-xs"></td>
-                    <td class="p-2 border"><input type="number" value="${tp.jp}" onchange="updateTPItem(${idx}, 'jp', parseInt(this.value)||0)" class="w-full p-1 border rounded text-xs text-center"></td>
-                    <td class="p-2 border"><input type="text" value="${tp.materi}" onchange="updateTPItem(${idx}, 'materi', this.value)" class="w-full p-1 border rounded text-xs"></td>
-                    <td class="p-2 border text-center">
-                        <button onclick="removeTPRow(${idx})" class="text-rose-500 hover:text-rose-700 text-xs p-1"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function addTPRow() {
-            const nextIdx = window.appState.tpList.length + 1;
-            window.appState.tpList.push({
-                id: `TP${nextIdx < 10 ? '0' + nextIdx : nextIdx}`,
-                desc: 'Tujuan Pembelajaran Baru',
-                jp: 2,
-                materi: 'Topik Baru'
-            });
-            renderTPTable();
-            renderProtaPromesTables();
-        }
-
-        function updateTPItem(idx, field, value) {
-            window.appState.tpList[idx][field] = value;
-            renderProtaPromesTables();
-        }
-
-        function removeTPRow(idx) {
-            window.appState.tpList.splice(idx, 1);
-            renderTPTable();
-            renderProtaPromesTables();
-        }
-
-        // Render Prota and Promes Tables
-        function renderProtaPromesTables() {
-            const protaBody = document.getElementById('prota-table-body');
-            const promesBody = document.getElementById('promes-table-body');
-            const weekHeader = document.getElementById('promes-week-header');
-            const monthHeader = document.getElementById('promes-month-header');
-
-            const weeksCount = parseInt(window.appState.paramMinggu) || 18;
-            const semester = window.appState.paramSemester;
-
-            // Render Promes Week Header
-            let weekHeaderHtml = '';
-            for (let i = 1; i <= weeksCount; i++) {
-                weekHeaderHtml += `<th class="p-1 border border-indigo-700 w-8 text-center text-[10px]">${i}</th>`;
-            }
-            weekHeader.innerHTML = weekHeaderHtml;
-            monthHeader.setAttribute('colspan', weeksCount);
-
-            // Render Prota
-            protaBody.innerHTML = '';
-            promesBody.innerHTML = '';
-
-            let currentWeekIndex = 1;
-
-            window.appState.tpList.forEach((tp, idx) => {
-                // Prota Row
-                const trP = document.createElement('tr');
-                trP.className = "hover:bg-slate-50";
-                trP.innerHTML = `
-                    <td class="p-2 border text-center font-semibold text-xs">${idx + 1}</td>
-                    <td class="p-2 border text-xs">${tp.desc} (${tp.materi})</td>
-                    <td class="p-2 border text-center text-xs">${semester}</td>
-                    <td class="p-2 border text-center text-xs font-bold">${tp.jp} JP</td>
-                `;
-                protaBody.appendChild(trP);
-
-                // Promes Row calculation
-                const jpPerWeek = parseInt(window.appState.paramJp) || 2;
-                const neededWeeks = Math.max(1, Math.ceil(tp.jp / jpPerWeek));
-
-                let weekColsHtml = '';
-                for (let w = 1; w <= weeksCount; w++) {
-                    if (w >= currentWeekIndex && w < currentWeekIndex + neededWeeks) {
-                        weekColsHtml += `<td class="p-1 border text-center bg-indigo-100 font-bold text-indigo-700 text-[10px]">${jpPerWeek}</td>`;
-                    } else {
-                        weekColsHtml += `<td class="p-1 border text-center text-slate-300 text-[10px]">-</td>`;
-                    }
-                }
-                currentWeekIndex += neededWeeks;
-
-                const trPr = document.createElement('tr');
-                trPr.className = "hover:bg-slate-50";
-                trPr.innerHTML = `
-                    <td class="p-2 border text-center text-xs">${idx + 1}</td>
-                    <td class="p-2 border text-xs font-medium">${tp.materi}</td>
-                    <td class="p-2 border text-center text-xs font-bold">${tp.jp}</td>
-                    ${weekColsHtml}
-                `;
-                promesBody.appendChild(trPr);
-            });
-        }
-
-        // Render Rekap Nilai Table
-        function renderRekapNilaiTable() {
-            const tbody = document.getElementById('nilai-table-body');
-            tbody.innerHTML = '';
-
-            window.appState.rekapSiswa.forEach((s, idx) => {
-                const avg = Math.round((s.nilaiLkpd + s.nilaiKuis) / 2);
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50";
-                tr.innerHTML = `
-                    <td class="p-2 border text-center text-xs font-semibold">${idx + 1}</td>
-                    <td class="p-2 border"><input type="text" value="${s.nama}" onchange="updateStudent(${idx}, 'nama', this.value)" class="w-full p-1 border rounded text-xs"></td>
-                    <td class="p-2 border text-center"><input type="number" value="${s.nilaiLkpd}" onchange="updateStudent(${idx}, 'nilaiLkpd', parseInt(this.value)||0)" class="w-20 p-1 border rounded text-xs text-center"></td>
-                    <td class="p-2 border text-center"><input type="number" value="${s.nilaiKuis}" onchange="updateStudent(${idx}, 'nilaiKuis', parseInt(this.value)||0)" class="w-20 p-1 border rounded text-xs text-center"></td>
-                    <td class="p-2 border text-center font-bold text-xs bg-indigo-50 text-indigo-700">${avg}</td>
-                    <td class="p-2 border text-center">
-                        <button onclick="removeStudent(${idx})" class="text-rose-500 hover:text-rose-700 text-xs p-1"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function addStudentRow() {
-            const next = window.appState.rekapSiswa.length + 1;
-            window.appState.rekapSiswa.push({
-                id: Date.now(),
-                nama: `Siswa Baru ${next}`,
-                nilaiLkpd: 80,
-                nilaiKuis: 80
-            });
-            renderRekapNilaiTable();
-        }
-
-        function updateStudent(idx, field, value) {
-            window.appState.rekapSiswa[idx][field] = value;
-            renderRekapNilaiTable();
-        }
-
-        function removeStudent(idx) {
-            window.appState.rekapSiswa.splice(idx, 1);
-            renderRekapNilaiTable();
-        }
-
-        // Gemini AI Integration Engine
-        async function generateAllDevice() {
-            updateDataFromUI();
-
-            const materi = window.appState.materiText.trim();
-            if (!materi) {
-                alert("Harap masukkan atau upload teks ringkasan materi terlebih dahulu.");
-                return;
-            }
-
-            document.getElementById('loading-overlay').classList.remove('hidden');
-
-            const systemPrompt = `Anda adalah pakar pengembang Kurikulum Merdeka di Indonesia. Tugas Anda adalah memproses materi pembelajaran dan memproduksi perangkat ajar lengkap dalam format JSON terstruktur baku. Format harus valid tanpa karakter markdown tambahan di awal/akhir JSON.`;
-
-            const userPrompt = `
-Buatkan perangkat pembelajaran Kurikulum Merdeka lengkap untuk:
-- Mata Pelajaran: ${window.appState.paramMapel}
-- Fase/Kelas: ${window.appState.paramFase}
-- Model Pembelajaran: ${window.appState.paramModel}
-- Ringkasan Materi/Silabus: "${materi}"
-
-Berikan output persis dalam format JSON berikut:
+Hasilkan JSON terstruktur persis dengan format skema berikut (tanpa Markdown pembungkus selain \`\`\`json ... \`\`\`):
 {
-  "cpText": "Capaian Pembelajaran Elemen yang komprehensif...",
-  "tpList": [
-    {"id": "TP01", "desc": "Deskripsi TP 1...", "jp": 4, "materi": "Materi Pokok 1"},
-    {"id": "TP02", "desc": "Deskripsi TP 2...", "jp": 6, "materi": "Materi Pokok 2"}
+  "cp": "Tuliskan ringkasan Capaian Pembelajaran secara rinci dan profesional",
+  "atp": [
+    {"kode": "TP.1", "tp": "Uraian rinci TP 1", "materi": "Submateri 1", "jp": 4},
+    {"kode": "TP.2", "tp": "Uraian rinci TP 2", "materi": "Submateri 2", "jp": 4},
+    {"kode": "TP.3", "tp": "Uraian rinci TP 3", "materi": "Submateri 3", "jp": 4}
   ],
-  "rppPemahaman": "Kalimat pemahaman bermakna...",
-  "rppPemantik": "2-3 Pertanyaan pemantik menarik...",
-  "rppPendahuluan": "Langkah-langkah pendahuluan...",
-  "rppInti": "Langkah-langkah kegiatan inti berdasarkan sintaks ${window.appState.paramModel}...",
-  "rppPenutup": "Langkah-langkah kegiatan penutup...",
-  "mediaText": "Daftar rekomendasi media dan alat ajar...",
-  "lkpdJudul": "Judul Aktivitas LKPD...",
-  "lkpdPetunjuk": "Petunjuk pengerjaan LKPD...",
-  "lkpdTugas": "Daftar soal/tugas penuntun aktivitas siswa...",
-  "quizText": "Daftar 3-5 Soal Kuis Evaluasi beserta kunci jawaban..."
-}
-`;
+  "promes": [
+    {"no": 1, "materi": "Submateri 1", "jp": 4, "b1": "4", "b2": "", "b3": "", "b4": ""},
+    {"no": 2, "materi": "Submateri 2", "jp": 4, "b1": "", "b2": "4", "b3": "", "b4": ""},
+    {"no": 3, "materi": "Submateri 3", "jp": 4, "b1": "", "b2": "", "b3": "4", "b4": ""}
+  ],
+  "modul": "LENGKAP DAN DETAIL: Modul Ajar RPP mencakup Identitas, Profil Pelajar Pancasila, Tujuan Pembelajaran, Pertanyaan Pemantik, Langkah-langkah Pembelajaran Rinci (Pendahuluan, Kegiatan Inti berdasar model ${model}, Penutup), Asesmen Formatif & Sumatif, serta Lembar Refleksi.",
+  "lkpd": "LENGKAP: Lembar Kerja Peserta Didik lengkap beserta Petunjuk Kerja, Soal Praktik/Aktivitas, dan Rubrik Evaluasi Rinci.",
+  "media": "Rekomendasi media visual, peraga, presentation slide, dan tautan/alat bantu digital.",
+  "kuis": [
+    {"no": 1, "soal": "Soal PG 1", "opsi": ["A. pilihan 1", "B. pilihan 2", "C. pilihan 3", "D. pilihan 4"], "kunci": "A"},
+    {"no": 2, "soal": "Soal PG 2", "opsi": ["A. pilihan 1", "B. pilihan 2", "C. pilihan 3", "D. pilihan 4"], "kunci": "B"},
+    {"no": 3, "soal": "Soal Essay 1", "opsi": [], "kunci": "Jawaban acuan lengkap"}
+  ]
+}`;
 
-            try {
-                const apiKey = ""; // Canvas runtime injection
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+      try {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeGeminiKey}`;
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: promptSystem }] }]
+          })
+        });
 
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: userPrompt }] }],
-                        systemInstruction: { parts: [{ text: systemPrompt }] },
-                        generationConfig: { responseMimeType: "application/json" }
-                    })
-                });
+        const result = await response.json();
+        const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
-                if (!response.ok) throw new Error("Gagal menghubungi API Gemini");
+        if (!textResponse) throw new Error("Tidak ada respon dari model.");
 
-                const result = await response.json();
-                const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+        const jsonMatch = textResponse.match(/```json\n([\s\S]*?)\n```/) || textResponse.match(/```([\s\S]*?)\n```/);
+        const rawJson = jsonMatch ? jsonMatch[1] : textResponse;
+        const parsedData = JSON.parse(rawJson);
 
-                if (!jsonText) throw new Error("Output AI kosong");
+        renderGeneratedData(parsedData);
+        showToast("Perangkat pembelajaran berhasil digenerate!", "success");
+        switchTab('cpatp-tab');
 
-                const parsedData = JSON.parse(jsonText);
+      } catch (err) {
+        console.error("Gemini Error:", err);
+        showToast("Gagal mengolah data Gemini: " + err.message, "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-yellow-300"></i> Generate Perangkat Lengkap (Detail)`;
+      }
+    }
 
-                // Update state with AI Generated Data
-                window.appState.cpText = parsedData.cpText || window.appState.cpText;
-                if (Array.isArray(parsedData.tpList)) window.appState.tpList = parsedData.tpList;
-                
-                window.appState.rppInfoMapel = `${window.appState.paramMapel} - ${window.appState.paramFase}`;
-                window.appState.rppInfoModel = window.appState.paramModel;
-                window.appState.rppPemahaman = parsedData.rppPemahaman || '';
-                window.appState.rppPemantik = parsedData.rppPemantik || '';
-                window.appState.rppPendahuluan = parsedData.rppPendahuluan || '';
-                window.appState.rppInti = parsedData.rppInti || '';
-                window.appState.rppPenutup = parsedData.rppPenutup || '';
+    function renderGeneratedData(data) {
+      if (data.cp) document.getElementById('output-cp').innerText = data.cp;
+      if (data.atp && Array.isArray(data.atp)) {
+        const atpBody = document.getElementById('table-atp-body');
+        atpBody.innerHTML = data.atp.map(item => `
+          <tr>
+            <td class="p-3 border-b font-semibold text-blue-600">${item.kode || '-'}</td>
+            <td class="p-3 border-b">${item.tp || '-'}</td>
+            <td class="p-3 border-b">${item.materi || '-'}</td>
+            <td class="p-3 border-b">${item.jp || '-'} JP</td>
+          </tr>
+        `).join('');
+      }
 
-                window.appState.mediaText = parsedData.mediaText || '';
-                window.appState.lkpdJudul = parsedData.lkpdJudul || '';
-                window.appState.lkpdPetunjuk = parsedData.lkpdPetunjuk || '';
-                window.appState.lkpdTugas = parsedData.lkpdTugas || '';
-                window.appState.quizText = parsedData.quizText || '';
+      if (data.promes && Array.isArray(data.promes)) {
+        const promesBody = document.getElementById('promes-table-body');
+        promesBody.innerHTML = data.promes.map(p => `
+          <tr>
+            <td class="p-3 border text-center">${p.no}</td>
+            <td class="p-3 border">${p.materi}</td>
+            <td class="p-3 border text-center">${p.jp}</td>
+            <td class="p-3 border text-center font-bold text-blue-600">${p.b1 || ''}</td>
+            <td class="p-3 border text-center font-bold text-blue-600">${p.b2 || ''}</td>
+            <td class="p-3 border text-center font-bold text-blue-600">${p.b3 || ''}</td>
+            <td class="p-3 border text-center font-bold text-blue-600">${p.b4 || ''}</td>
+          </tr>
+        `).join('');
+      }
 
-                renderAllDataToUI();
+      if (data.modul) {
+        document.getElementById('modul-ajar-container').innerHTML = `<div class="whitespace-pre-line">${data.modul}</div>`;
+      }
 
-                if (window.saveToCloud) window.saveToCloud();
+      if (data.lkpd) {
+        document.getElementById('lkpd-container').innerHTML = `<div class="whitespace-pre-line">${data.lkpd}</div>`;
+      }
+      if (data.media) {
+        document.getElementById('media-container').innerHTML = `<div class="whitespace-pre-line">${data.media}</div>`;
+      }
 
-                switchTab('tab-cptp');
-            } catch (err) {
-                console.error("AI Generation Error:", err);
-                alert("Terjadi kesalahan saat memproses materi dengan AI: " + err.message);
-            } finally {
-                document.getElementById('loading-overlay').classList.add('hidden');
-            }
+      if (data.kuis && Array.isArray(data.kuis)) {
+        const kuisCont = document.getElementById('kuis-container');
+        kuisCont.innerHTML = data.kuis.map(q => `
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <p class="font-semibold text-slate-800">${q.no}. ${q.soal}</p>
+            ${q.opsi && q.opsi.length > 0 ? `
+              <ul class="list-disc list-inside mt-1 ml-2 text-slate-600">
+                ${q.opsi.map(o => `<li>${o}</li>`).join('')}
+              </ul>
+            ` : ''}
+            <p class="mt-2 text-[11px] text-emerald-700 font-medium">Kunci: ${q.kunci}</p>
+          </div>
+        `).join('');
+      }
+    }
+
+    function calculateAverages() {
+      const rows = document.querySelectorAll('#rekap-body tr');
+      rows.forEach(row => {
+        const f1 = parseFloat(row.querySelector('.val-f1')?.value || 0);
+        const f2 = parseFloat(row.querySelector('.val-f2')?.value || 0);
+        const sum = parseFloat(row.querySelector('.val-sum')?.value || 0);
+        const avgCell = row.querySelector('.val-avg');
+
+        if (avgCell) {
+          const avg = (f1 + f2 + sum) / 3;
+          avgCell.innerText = avg.toFixed(1);
         }
+      });
+    }
 
-        // Export Functionality using SheetJS (.xlsx)
-        function exportToExcel(type) {
-            updateDataFromUI();
-            const wb = XLSX.utils.book_new();
-            const state = window.appState;
+    function addRowSiswa() {
+      const tbody = document.getElementById('rekap-body');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="p-2 border"><input type="text" value="Siswa Baru" class="w-full bg-transparent p-1 focus:bg-white focus:outline-none"></td>
+        <td class="p-2 border"><input type="number" value="0" oninput="calculateAverages()" class="val-f1 w-full bg-transparent p-1 text-center focus:bg-white focus:outline-none"></td>
+        <td class="p-2 border"><input type="number" value="0" oninput="calculateAverages()" class="val-f2 w-full bg-transparent p-1 text-center focus:bg-white focus:outline-none"></td>
+        <td class="p-2 border"><input type="number" value="0" oninput="calculateAverages()" class="val-sum w-full bg-transparent p-1 text-center focus:bg-white focus:outline-none"></td>
+        <td class="p-2 border bg-emerald-50/50 font-bold text-center text-emerald-700 val-avg">0.0</td>
+        <td class="p-2 border text-center">
+          <button onclick="deleteRow(this)" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+      calculateAverages();
+    }
 
-            if (type === 'CP_TP_ATP') {
-                const data = [
-                    ["CAPAIAN PEMBELAJARAN (CP)"],
-                    [state.cpText],
-                    [],
-                    ["Kode TP", "Deskripsi Tujuan Pembelajaran", "Alokasi JP", "Materi Pokok"]
-                ];
-                state.tpList.forEach(tp => data.push([tp.id, tp.desc, tp.jp, tp.materi]));
+    function deleteRow(btn) {
+      btn.closest('tr').remove();
+    }
 
-                const ws = XLSX.utils.aoa_to_sheet(data);
-                XLSX.utils.book_append_sheet(wb, ws, "CP_TP_ATP");
-                XLSX.writeFile(wb, `CP_TP_ATP_${state.paramMapel}.xlsx`);
-            } 
-            else if (type === 'Prota_Promes') {
-                const protaData = [["PROGRAM TAHUNAN (PROTA)"], ["No", "Materi Pembelajaran / ATP", "Semester", "Alokasi JP"]];
-                state.tpList.forEach((tp, i) => protaData.push([i + 1, tp.desc, state.paramSemester, tp.jp]));
+    function exportNilaiToExcel() {
+      const table = document.getElementById('table-rekap');
+      const wb = XLSX.utils.table_to_book(table, { sheet: "Rekap Nilai" });
+      XLSX.writeFile(wb, `Rekap_Nilai_Kurikulum_Merdeka.xlsx`);
+    }
 
-                const wsProta = XLSX.utils.aoa_to_sheet(protaData);
-                XLSX.utils.book_append_sheet(wb, wsProta, "Prota");
-                XLSX.writeFile(wb, `Prota_Promes_${state.paramMapel}.xlsx`);
-            }
-            else if (type === 'LKPD_Media') {
-                const data = [
-                    ["REKOMENDASI MEDIA PEMBELAJARAN"],
-                    [state.mediaText],
-                    [],
-                    ["LEMBAR KERJA PESERTA DIDIK (LKPD)"],
-                    ["Judul", state.lkpdJudul],
-                    ["Petunjuk", state.lkpdPetunjuk],
-                    ["Tugas / Soal", state.lkpdTugas]
-                ];
-                const ws = XLSX.utils.aoa_to_sheet(data);
-                XLSX.utils.book_append_sheet(wb, ws, "LKPD_Media");
-                XLSX.writeFile(wb, `LKPD_Media_${state.paramMapel}.xlsx`);
-            }
-            else if (type === 'Rekap_Nilai') {
-                const data = [
-                    ["REKAPITULASI NILAI SISWA"],
-                    ["Mata Pelajaran", state.paramMapel],
-                    [],
-                    ["No", "Nama Siswa", "Nilai LKPD", "Nilai Kuis", "Rata-Rata"]
-                ];
-                state.rekapSiswa.forEach((s, i) => {
-                    const avg = Math.round((s.nilaiLkpd + s.nilaiKuis) / 2);
-                    data.push([i + 1, s.nama, s.nilaiLkpd, s.nilaiKuis, avg]);
-                });
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-button').forEach(el => {
+        el.classList.remove('tab-active');
+        el.classList.add('text-slate-600');
+      });
 
-                const ws = XLSX.utils.aoa_to_sheet(data);
-                XLSX.utils.book_append_sheet(wb, ws, "Rekap Nilai");
-                XLSX.writeFile(wb, `Rekap_Nilai_${state.paramMapel}.xlsx`);
-            }
-        }
+      document.getElementById(tabId).classList.remove('hidden');
+      const activeBtn = document.getElementById('tab-' + tabId);
+      if (activeBtn) {
+        activeBtn.classList.add('tab-active');
+        activeBtn.classList.remove('text-slate-600');
+      }
+    }
 
-        // Print or Copy Modul Ajar
-        function exportModulWord() {
-            const content = document.getElementById('rpp-container').innerText;
-            navigator.clipboard.writeText(content).then(() => {
-                alert("Teks Modul Ajar / RPP berhasil disalin ke clipboard! Anda bisa langsung menempelkannya (Paste) di Microsoft Word atau Google Docs.");
-            });
-        }
-    </script>
+    function showToast(message, type = "info") {
+      const toast = document.getElementById('toast');
+      const msg = document.getElementById('toast-message');
+      const icon = document.getElementById('toast-icon');
+
+      msg.innerText = message;
+      if (type === "error") {
+        icon.className = "fa-solid fa-circle-exclamation text-red-400 text-lg";
+      } else if (type === "success") {
+        icon.className = "fa-solid fa-circle-check text-emerald-400 text-lg";
+      } else {
+        icon.className = "fa-solid fa-info-circle text-blue-400 text-lg";
+      }
+
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3500);
+    }
+  </script>
 </body>
 </html>
