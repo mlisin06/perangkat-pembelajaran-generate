@@ -112,9 +112,9 @@
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
 
     <!-- Toast Notification -->
-    <div id="toast" class="hidden fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs border border-slate-700 animate-bounce">
-      <i id="toast-icon" class="fa-solid fa-info-circle text-blue-400 text-lg"></i>
-      <span id="toast-message">Notifikasi</span>
+    <div id="toast" class="hidden fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs border border-slate-700 animate-bounce max-w-md">
+      <i id="toast-icon" class="fa-solid fa-info-circle text-blue-400 text-lg flex-shrink-0"></i>
+      <span id="toast-message" class="break-words">Notifikasi</span>
     </div>
 
     <!-- TAB 1: INPUT & KONFIGURASI MATERI -->
@@ -363,7 +363,7 @@
     /* ==========================================================================
        1. GLOBAL CONFIGURATION & INITIALIZATION
        ========================================================================== */
-    const DEFAULT_GEMINI_API_KEY = "PASTE_YOUR_GEMINI_API_KEY_HERE";
+    const DEFAULT_GEMINI_API_KEY = "";
     const DEFAULT_FIREBASE_CONFIG = null;
 
     let activeGeminiKey = localStorage.getItem('gemini_key') || DEFAULT_GEMINI_API_KEY;
@@ -383,10 +383,13 @@
       const geminiStatus = document.getElementById('gemini-status');
       const firebaseStatus = document.getElementById('firebase-status');
 
-      if (activeGeminiKey && activeGeminiKey !== "PASTE_YOUR_GEMINI_API_KEY_HERE") {
+      if (activeGeminiKey && activeGeminiKey.trim() !== "") {
         geminiStatus.className = "flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 text-xs rounded-full";
         geminiStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Gemini: Ready`;
         document.getElementById('input-gemini-key').value = activeGeminiKey;
+      } else {
+        geminiStatus.className = "flex items-center gap-1.5 px-3 py-1 bg-red-500/20 text-red-200 border border-red-400/30 text-xs rounded-full";
+        geminiStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span> Gemini: Unset`;
       }
 
       if (activeFirebaseConfig) {
@@ -487,7 +490,7 @@
           const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
           extractedText = result.value;
         } else if (file.type.startsWith('image/')) {
-          showToast("Membaca teks dari gambar memerlukan Gemini AI...", "info");
+          showToast("Membaca teks dari gambar...", "info");
           const reader = new FileReader();
           reader.onload = function(e) {
             document.getElementById('input-materi').value = `[File Gambar Terunggah: ${file.name}]\n(Catatan: Untuk analisis visual gambar penuh, klik tombol Generate dengan API Key aktif)`;
@@ -521,8 +524,8 @@
        3. GEMINI AI GENERATION API CALL
        ========================================================================== */
     async function generateAllWithGemini() {
-      if (!activeGeminiKey || activeGeminiKey === "PASTE_YOUR_GEMINI_API_KEY_HERE") {
-        showToast("Harap isi Gemini API Key di panel Konfigurasi!", "error");
+      if (!activeGeminiKey || activeGeminiKey.trim() === "") {
+        showToast("Harap isi Gemini API Key di panel Pengaturan Kunci!", "error");
         toggleConfigPanel();
         return;
       }
@@ -550,9 +553,9 @@ Berdasarkan parameter berikut:
 - Model Pembelajaran: ${model}
 - Ringkasan Materi: ${materi}
 
-Buatkan perangkat pembelajaran yang lengkap. Kembalikan HANYA format JSON murni yang valid tanpa pembungkus Markdown lain.
+Buatkan perangkat pembelajaran yang lengkap. Kembalikan HANYA format JSON murni yang valid tanpa pembungkus Markdown.
 
-Skema JSON:
+Skema JSON yang wajib dipenuhi:
 {
   "cp": "Ringkasan Capaian Pembelajaran secara rinci",
   "atp": [
@@ -573,7 +576,7 @@ Skema JSON:
 }`;
 
       try {
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeGeminiKey}`;
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeGeminiKey.trim()}`;
         const response = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -581,31 +584,33 @@ Skema JSON:
             contents: [{ parts: [{ text: promptSystem }] }],
             generationConfig: {
               responseMimeType: "application/json",
-              maxOutputTokens: 8192
+              temperature: 0.2
             }
           })
         });
 
         if (!response.ok) {
           const errRes = await response.json().catch(() => ({}));
-          throw new Error(errRes.error?.message || `HTTP Error ${response.status}`);
+          const errMsg = errRes.error?.message || `HTTP Status ${response.status}`;
+          throw new Error(`Gemini API Error: ${errMsg}`);
         }
 
         const result = await response.json();
         const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
-        if (!textResponse) throw new Error("Respon kosong dari AI Gemini. Cek kuota API Key Anda.");
+        if (!textResponse) throw new Error("Respon dari Gemini AI kosong. Periksa kunci API atau tingkat kuota Anda.");
 
         let parsedData;
         try {
-          parsedData = JSON.parse(textResponse);
-        } catch (e) {
-          const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            parsedData = JSON.parse(jsonMatch[0]);
-          } else {
-            throw new Error("Gagal membaca struktur data JSON dari AI.");
+          // Bersihkan string JSON jika AI menyertakan blok markdown ```json ... ```
+          let cleanedText = textResponse.trim();
+          if (cleanedText.startsWith("```")) {
+            cleanedText = cleanedText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
           }
+          parsedData = JSON.parse(cleanedText);
+        } catch (e) {
+          console.error("Raw response:", textResponse);
+          throw new Error("Gagal membaca struktur data JSON dari AI: " + e.message);
         }
 
         renderGeneratedData(parsedData);
@@ -614,7 +619,7 @@ Skema JSON:
 
       } catch (err) {
         console.error("Gemini Error:", err);
-        showToast("Gagal mengolah data Gemini: " + err.message, "error");
+        showToast(err.message, "error");
       } finally {
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-yellow-300"></i> Generate Perangkat Lengkap (Detail)`;
@@ -741,15 +746,15 @@ Skema JSON:
 
       msg.innerText = message;
       if (type === "error") {
-        icon.className = "fa-solid fa-circle-exclamation text-red-400 text-lg";
+        icon.className = "fa-solid fa-circle-exclamation text-red-400 text-lg flex-shrink-0";
       } else if (type === "success") {
-        icon.className = "fa-solid fa-circle-check text-emerald-400 text-lg";
+        icon.className = "fa-solid fa-circle-check text-emerald-400 text-lg flex-shrink-0";
       } else {
-        icon.className = "fa-solid fa-info-circle text-blue-400 text-lg";
+        icon.className = "fa-solid fa-info-circle text-blue-400 text-lg flex-shrink-0";
       }
 
       toast.classList.remove('hidden');
-      setTimeout(() => toast.classList.add('hidden'), 3500);
+      setTimeout(() => toast.classList.add('hidden'), 5000);
     }
   </script>
 </body>
