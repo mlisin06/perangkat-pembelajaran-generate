@@ -550,28 +550,25 @@ Berdasarkan parameter berikut:
 - Model Pembelajaran: ${model}
 - Ringkasan Materi: ${materi}
 
-Instruksi Tambahan: Buatkan hasil yang **sangat lengkap, detail, dan komprehensif**. Jangan melakukan penyingkatan berlebihan.
+Buatkan perangkat pembelajaran yang lengkap. Kembalikan HANYA format JSON murni yang valid tanpa pembungkus Markdown lain.
 
-Hasilkan JSON terstruktur persis dengan format skema berikut (tanpa Markdown pembungkus selain \`\`\`json ... \`\`\`):
+Skema JSON:
 {
-  "cp": "Tuliskan ringkasan Capaian Pembelajaran secara rinci dan profesional",
+  "cp": "Ringkasan Capaian Pembelajaran secara rinci",
   "atp": [
-    {"kode": "TP.1", "tp": "Uraian rinci TP 1", "materi": "Submateri 1", "jp": 4},
-    {"kode": "TP.2", "tp": "Uraian rinci TP 2", "materi": "Submateri 2", "jp": 4},
-    {"kode": "TP.3", "tp": "Uraian rinci TP 3", "materi": "Submateri 3", "jp": 4}
+    {"kode": "TP.1", "tp": "Uraian TP 1", "materi": "Submateri 1", "jp": 4},
+    {"kode": "TP.2", "tp": "Uraian TP 2", "materi": "Submateri 2", "jp": 4}
   ],
   "promes": [
     {"no": 1, "materi": "Submateri 1", "jp": 4, "b1": "4", "b2": "", "b3": "", "b4": ""},
-    {"no": 2, "materi": "Submateri 2", "jp": 4, "b1": "", "b2": "4", "b3": "", "b4": ""},
-    {"no": 3, "materi": "Submateri 3", "jp": 4, "b1": "", "b2": "", "b3": "4", "b4": ""}
+    {"no": 2, "materi": "Submateri 2", "jp": 4, "b1": "", "b2": "4", "b3": "", "b4": ""}
   ],
-  "modul": "LENGKAP DAN DETAIL: Modul Ajar RPP mencakup Identitas, Profil Pelajar Pancasila, Tujuan Pembelajaran, Pertanyaan Pemantik, Langkah-langkah Pembelajaran Rinci (Pendahuluan, Kegiatan Inti berdasar model ${model}, Penutup), Asesmen Formatif & Sumatif, serta Lembar Refleksi.",
-  "lkpd": "LENGKAP: Lembar Kerja Peserta Didik lengkap beserta Petunjuk Kerja, Soal Praktik/Aktivitas, dan Rubrik Evaluasi Rinci.",
-  "media": "Rekomendasi media visual, peraga, presentation slide, dan tautan/alat bantu digital.",
+  "modul": "Modul Ajar RPP mencakup Identitas, Profil Pelajar Pancasila, TP, Pertanyaan Pemantik, Langkah Pembelajaran Rinci (Pendahuluan, Kegiatan Inti ${model}, Penutup), Asesmen, dan Refleksi.",
+  "lkpd": "Lembar Kerja Peserta Didik beserta Petunjuk Kerja dan Aktivitas.",
+  "media": "Rekomendasi media visual dan alat bantu digital.",
   "kuis": [
     {"no": 1, "soal": "Soal PG 1", "opsi": ["A. pilihan 1", "B. pilihan 2", "C. pilihan 3", "D. pilihan 4"], "kunci": "A"},
-    {"no": 2, "soal": "Soal PG 2", "opsi": ["A. pilihan 1", "B. pilihan 2", "C. pilihan 3", "D. pilihan 4"], "kunci": "B"},
-    {"no": 3, "soal": "Soal Essay 1", "opsi": [], "kunci": "Jawaban acuan lengkap"}
+    {"no": 2, "soal": "Soal Essay 1", "opsi": [], "kunci": "Jawaban acuan"}
   ]
 }`;
 
@@ -581,18 +578,35 @@ Hasilkan JSON terstruktur persis dengan format skema berikut (tanpa Markdown pem
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: promptSystem }] }]
+            contents: [{ parts: [{ text: promptSystem }] }],
+            generationConfig: {
+              responseMimeType: "application/json",
+              maxOutputTokens: 8192
+            }
           })
         });
+
+        if (!response.ok) {
+          const errRes = await response.json().catch(() => ({}));
+          throw new Error(errRes.error?.message || `HTTP Error ${response.status}`);
+        }
 
         const result = await response.json();
         const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
-        if (!textResponse) throw new Error("Tidak ada respon dari model.");
+        if (!textResponse) throw new Error("Respon kosong dari AI Gemini. Cek kuota API Key Anda.");
 
-        const jsonMatch = textResponse.match(/```json\n([\s\S]*?)\n```/) || textResponse.match(/```([\s\S]*?)\n```/);
-        const rawJson = jsonMatch ? jsonMatch[1] : textResponse;
-        const parsedData = JSON.parse(rawJson);
+        let parsedData;
+        try {
+          parsedData = JSON.parse(textResponse);
+        } catch (e) {
+          const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            parsedData = JSON.parse(jsonMatch[0]);
+          } else {
+            throw new Error("Gagal membaca struktur data JSON dari AI.");
+          }
+        }
 
         renderGeneratedData(parsedData);
         showToast("Perangkat pembelajaran berhasil digenerate!", "success");
