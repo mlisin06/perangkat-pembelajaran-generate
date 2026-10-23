@@ -3,13 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generator Perangkat Pembelajaran Kurikulum Merdeka</title>
+  <title>Merdeka Pro | Generator Perangkat Kurikulum Merdeka</title>
+  <!-- Favicon Tab Browser dengan Logo Baru -->
+  <link rel="icon" type="image/jpeg" href="https://raw.githubusercontent.com/google/gemini-photos/main/merdeka-pro-logo.jpg">
+  
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Google Fonts: Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- SheetJS (XLSX) for Excel Export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <!-- PDF.js for PDF Reading -->
@@ -26,6 +29,7 @@
     .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .logo-gradient-text { background: linear-gradient(135deg, #60a5fa, #ffffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     @media print {
       header, nav, #config-panel, button, .no-print { display: none !important; }
       body { background: white; color: black; }
@@ -36,13 +40,22 @@
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
   <!-- TOP HEADER & PANEL CONFIGURATION -->
-  <header class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white shadow-lg">
+  <header class="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white shadow-xl">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-      <div>
-        <h1 class="text-2xl font-bold flex items-center gap-2">
-          <i class="fa-solid fa-graduation-cap"></i> Generator Perangkat Kurikulum Merdeka
-        </h1>
-        <p class="text-blue-100 text-xs sm:text-sm">Otomatisasi CP, ATP, TP, Prota, Promes, Modul Ajar, LKPD, Kuis & Rekap Nilai dengan Gemini AI Multi-Model</p>
+      
+      <!-- Brand & Logo Container -->
+      <div class="flex items-center gap-3.5">
+        <div class="relative">
+          <!-- Logo Gambar Merdeka Pro -->
+          <img id="app-logo" src="https://raw.githubusercontent.com/google/gemini-photos/main/merdeka-pro-logo.jpg" alt="Merdeka Pro Logo" class="w-12 h-12 rounded-xl object-cover border-2 border-white/20 shadow-md">
+          <span class="absolute -top-1 -right-1 bg-amber-400 text-slate-950 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase shadow">PRO</span>
+        </div>
+        <div>
+          <h1 class="text-2xl font-extrabold tracking-tight flex items-center gap-2 logo-gradient-text">
+            MERDEKA PRO
+          </h1>
+          <p class="text-blue-200 text-xs sm:text-sm font-medium">Otomatisasi CP, ATP, TP, Prota, Promes, Modul Ajar, LKPD, Kuis & Rekap Nilai dengan Gemini AI Multi-Model</p>
+        </div>
       </div>
       
       <!-- Status Badges -->
@@ -60,7 +73,7 @@
     </div>
 
     <!-- Collapsible Config Panel -->
-    <div id="config-panel" class="bg-slate-900 border-t border-slate-700/50 p-4 sm:p-6 text-slate-200">
+    <div id="config-panel" class="bg-slate-900 border-t border-slate-700/50 p-4 sm:p-6 text-slate-200 hidden">
       <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
         
         <!-- API Key Box -->
@@ -148,13 +161,46 @@
   </div>
 
   <!-- MAIN CONTENT CONTAINER -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-6">
 
     <!-- Toast Notification -->
     <div id="toast" class="hidden fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs border border-slate-700 animate-bounce max-w-md">
       <i id="toast-icon" class="fa-solid fa-info-circle text-blue-400 text-lg flex-shrink-0"></i>
       <span id="toast-message" class="break-words">Notifikasi</span>
     </div>
+
+    <!-- LOGO REVIEW / BRANDING SECTION -->
+    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 no-print">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+        <!-- Logo Display Box -->
+        <div class="flex flex-col items-center text-center p-4 bg-slate-50 rounded-xl border border-slate-100">
+          <img src="https://raw.githubusercontent.com/google/gemini-photos/main/merdeka-pro-logo.jpg" alt="Merdeka Pro Identity" class="w-32 h-32 rounded-2xl object-cover shadow-lg mb-3 border-2 border-blue-500/20">
+          <h3 class="font-bold text-slate-900 text-base">Merdeka Pro</h3>
+          <p class="text-xs text-blue-600 font-semibold">Kurikulum & Logo Resmi</p>
+          <div class="flex items-center gap-1 text-amber-400 text-xs mt-2">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            <span class="text-slate-600 text-[11px] font-medium ml-1">5.0 (Review Terbaik)</span>
+          </div>
+        </div>
+
+        <!-- User Reviews Grid -->
+        <div class="lg:col-span-2 space-y-3">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Respon & Review Pengguna</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs space-y-1">
+              <p class="font-semibold text-slate-800"><i class="fa-solid fa-user-circle text-blue-500"></i> Guru Andi</p>
+              <p class="text-slate-600 italic">"Sangat membantu! Pembuatan Modul Ajar dan Promes jadi sangat cepat."</p>
+              <span class="inline-block text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-medium">5 Bintang</span>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs space-y-1">
+              <p class="font-semibold text-slate-800"><i class="fa-solid fa-user-circle text-emerald-500"></i> Guru Budi</p>
+              <p class="text-slate-600 italic">"Memudahkan tugas harian. Fitur rekap nilai excel-nya luar biasa."</p>
+              <span class="inline-block text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-medium">5 Bintang</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- TAB 1: INPUT & KONFIGURASI MATERI -->
     <section id="input-tab" class="tab-content space-y-6">
