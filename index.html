@@ -29,8 +29,6 @@
   <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.min.js"></script>
   <!-- html2pdf.js for Direct PDF Download -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <!-- Chart.js for Analytics -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Firebase JS SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -57,6 +55,29 @@
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col">
 
+  <!-- MODAL PASSCODE KHUSUS UNTUK BUKA PANEL API KEY -->
+  <div id="api-lock-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4">
+      <div class="w-12 h-12 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center mx-auto text-xl">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <div>
+        <h3 class="text-white font-bold text-base">Proteksi Kunci API</h3>
+        <p class="text-slate-400 text-xs mt-1">Masukkan kode akses untuk membuka pengaturan API.</p>
+      </div>
+      <input type="password" id="input-api-passcode" placeholder="Masukkan kode..." class="w-full bg-slate-800 border border-slate-700 text-white text-center rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 tracking-widest">
+      <div class="flex gap-2">
+        <button onclick="closeApiLockModal()" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2.5 rounded-xl text-xs transition">
+          Batal
+        </button>
+        <button onclick="verifyApiPasscode()" class="w-1/2 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-lg">
+          Buka
+        </button>
+      </div>
+      <p id="api-lock-error" class="text-red-400 text-[11px] hidden">Kode akses salah.</p>
+    </div>
+  </div>
+
   <!-- TOP HEADER & PANEL CONFIGURATION -->
   <header class="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white shadow-xl">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -65,13 +86,13 @@
       <div class="flex items-center gap-3.5">
         <div class="relative">
           <img id="app-logo" src="logo.jpg" alt="Merdeka Pro Logo" class="w-12 h-12 rounded-xl object-cover border-2 border-white/20 shadow-md">
-          <span class="absolute -top-1 -right-1 bg-amber-400 text-slate-950 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase shadow">ULTIMATE</span>
+          <span class="absolute -top-1 -right-1 bg-amber-400 text-slate-950 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase shadow">PRO</span>
         </div>
         <div>
           <h1 class="text-2xl font-extrabold tracking-tight flex items-center gap-2 logo-gradient-text">
             MERDEKA PRO
           </h1>
-          <p class="text-blue-200 text-xs sm:text-sm font-medium">Asisten Kurikulum Merdeka AI, P5, Asesmen & Analisis Pembelajaran</p>
+          <p class="text-blue-200 text-xs sm:text-sm font-medium">Otomatisasi Perangkat Ajar Kurikulum Merdeka Terintegrasi & Multi-Model AI</p>
         </div>
       </div>
       
@@ -91,13 +112,13 @@
           <i id="theme-icon" class="fa-solid fa-moon"></i>
         </button>
 
-        <div id="gemini-status" class="flex items-center gap-1.5 px-3 py-1 bg-red-500/20 text-red-200 border border-red-400/30 text-xs rounded-full cursor-pointer" onclick="toggleConfigPanel()">
+        <div id="gemini-status" class="flex items-center gap-1.5 px-3 py-1 bg-red-500/20 text-red-200 border border-red-400/30 text-xs rounded-full cursor-pointer" onclick="requestOpenConfigPanel()">
           <span class="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span> Gemini: Unset
         </div>
-        <div id="firebase-status" class="flex items-center gap-1.5 px-3 py-1 bg-red-500/20 text-red-200 border border-red-400/30 text-xs rounded-full cursor-pointer" onclick="toggleConfigPanel()">
+        <div id="firebase-status" class="flex items-center gap-1.5 px-3 py-1 bg-red-500/20 text-red-200 border border-red-400/30 text-xs rounded-full cursor-pointer" onclick="requestOpenConfigPanel()">
           <span class="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span> Firebase: Unset
         </div>
-        <button id="toggle-config-btn" onclick="toggleConfigPanel()" class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg text-xs font-semibold transition flex items-center gap-1">
+        <button id="toggle-config-btn" onclick="requestOpenConfigPanel()" class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg text-xs font-semibold transition flex items-center gap-1">
           <i class="fa-solid fa-gear text-sm"></i> Kunci API
         </button>
       </div>
@@ -175,14 +196,11 @@
       <button onclick="switchTab('modul-tab')" id="tab-modul-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
         <i class="fa-solid fa-book-open"></i> 4. Modul Ajar / RPP
       </button>
-      <button onclick="switchTab('p5-tab')" id="tab-p5-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
-        <i class="fa-solid fa-hands-holding-circle text-amber-500"></i> 5. Modul P5 & Projek
-      </button>
       <button onclick="switchTab('lkpd-tab')" id="tab-lkpd-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
-        <i class="fa-solid fa-flask"></i> 6. LKPD, Media & Jurnal
+        <i class="fa-solid fa-flask"></i> 5. LKPD, Media & Jurnal
       </button>
       <button onclick="switchTab('kuisrekap-tab')" id="tab-kuisrekap-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
-        <i class="fa-solid fa-chart-simple"></i> 7. Kuis, Analisis & Rekap
+        <i class="fa-solid fa-chart-simple"></i> 6. Kuis & Rekap Nilai
       </button>
     </div>
   </nav>
@@ -228,7 +246,7 @@
             </div>
             <div class="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700 text-xs space-y-1">
               <p class="font-semibold text-slate-800 dark:text-slate-200"><i class="fa-solid fa-user-circle text-emerald-500"></i> Guru Budi</p>
-              <p class="text-slate-600 dark:text-slate-400 italic">"Memudahkan tugas harian. Fitur rekap nilai & modul P5 luar biasa."</p>
+              <p class="text-slate-600 dark:text-slate-400 italic">"Memudahkan tugas harian. Fitur rekap nilai excel-nya luar biasa."</p>
               <span class="inline-block text-[10px] bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded font-medium">5 Bintang</span>
             </div>
           </div>
@@ -313,30 +331,6 @@
               <option value="Discovery Learning">Discovery Learning</option>
               <option value="Inquiry Learning">Inquiry Learning</option>
             </select>
-          </div>
-        </div>
-
-        <!-- FITUR P5 INTEGRATED PARAMETER -->
-        <div class="bg-amber-50/50 dark:bg-amber-900/10 p-4 rounded-xl border border-amber-200 dark:border-amber-800/40 space-y-3">
-          <h3 class="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-2">
-            <i class="fa-solid fa-hands-holding-circle"></i> Integration Theme Projek P5 (Profil Pelajar Pancasila)
-          </h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tema P5 Utama</label>
-              <select id="input-tema-p5" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                <option value="Gaya Hidup Berkelanjutan">Gaya Hidup Berkelanjutan</option>
-                <option value="Kearifan Lokal">Kearifan Lokal</option>
-                <option value="Bhinneka Tunggal Ika">Bhinneka Tunggal Ika</option>
-                <option value="Bangunlah Jiwa dan Raganya">Bangunlah Jiwa dan Raganya</option>
-                <option value="Suara Demokrasi">Suara Demokrasi</option>
-                <option value="Kewirausahaan">Kewirausahaan</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Judul / Topik Projek P5</label>
-              <input type="text" id="input-judul-p5" value="Pengolahan Sampah Organik Menjadi Kompos Sekolah" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
-            </div>
           </div>
         </div>
 
@@ -501,7 +495,7 @@
           </div>
         </div>
 
-        <!-- TABEL PROGRAM TAHUNAN (PROTA) -->
+        <!-- PROTA -->
         <div>
           <h3 class="font-bold text-xs text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
             <i class="fa-solid fa-calendar text-emerald-600"></i> Program Tahunan (Prota)
@@ -525,7 +519,7 @@
 
         <hr class="border-slate-200 dark:border-slate-700">
 
-        <!-- PROGRAM SEMESTER (PROMES) -->
+        <!-- PROMES -->
         <div>
           <h3 class="font-bold text-xs text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
             <i class="fa-solid fa-calendar-days text-blue-600"></i> Rancangan Program Semester (Promes)
@@ -578,30 +572,7 @@
       </div>
     </section>
 
-    <!-- FITUR BARU TAB 5: MODUL PROJEK P5 -->
-    <section id="p5-tab" class="tab-content hidden space-y-6">
-      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-4">
-        <div class="flex flex-wrap justify-between items-center gap-4 no-print">
-          <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
-            <i class="fa-solid fa-hands-holding-circle text-amber-500"></i> Modul Projek Penguatan Profil Pelajar Pancasila (P5)
-          </h2>
-          <div class="flex gap-2">
-            <button onclick="downloadPDFDirect('p5-tab', 'Modul_P5_Kurikulum_Merdeka')" class="text-xs bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700 hover:bg-red-100 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
-              <i class="fa-solid fa-file-pdf"></i> Unduh PDF
-            </button>
-            <button onclick="exportToWord('p5-tab', 'Modul_P5_Kurikulum_Merdeka')" class="text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
-              <i class="fa-solid fa-file-word text-blue-500"></i> Ekspor Word (.docx)
-            </button>
-          </div>
-        </div>
-
-        <div id="modul-p5-container" class="prose dark:prose-invert max-w-none text-xs text-slate-700 dark:text-slate-300 leading-relaxed space-y-4">
-          <p class="text-slate-400 italic">Draf modul P5 akan digenerate otomatis berdasarkan parameter Tema P5 yang dipilih.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 6: LKPD, MEDIA & JURNAL MENGAJAR -->
+    <!-- TAB 5: LKPD, MEDIA & JURNAL MENGAJAR -->
     <section id="lkpd-tab" class="tab-content hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- LKPD -->
@@ -635,7 +606,7 @@
       </div>
     </section>
 
-    <!-- TAB 7: KUIS, KARTU SOAL, ANALISIS & REKAP NILAI INTERAKTIF -->
+    <!-- TAB 6: KUIS, KARTU SOAL & REKAP NILAI INTERAKTIF -->
     <section id="kuisrekap-tab" class="tab-content hidden space-y-6">
       <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-6">
         
@@ -661,32 +632,6 @@
 
           <div id="kuis-container" class="text-xs text-slate-700 dark:text-slate-300 space-y-4">
             <p class="text-slate-400 italic">Belum ada kuis yang digenerate.</p>
-          </div>
-        </div>
-
-        <hr class="border-slate-200 dark:border-slate-700">
-
-        <!-- FITUR BARU: ANALISIS HASIL BELAJAR CHART -->
-        <div>
-          <h2 class="text-base font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-chart-line text-indigo-500"></i> Grafik Dashboard Analisis Ketuntasan Belajar Siswa
-          </h2>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div class="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl">
-              <p class="text-[11px] text-blue-600 dark:text-blue-400 font-bold uppercase">Rata-Rata Kelas</p>
-              <p id="stat-avg" class="text-2xl font-black text-blue-900 dark:text-blue-200">85.0</p>
-            </div>
-            <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-xl">
-              <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold uppercase">Persentase Tuntas (KKTP)</p>
-              <p id="stat-tuntas" class="text-2xl font-black text-emerald-900 dark:text-emerald-200">100%</p>
-            </div>
-            <div class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-xl">
-              <p class="text-[11px] text-amber-600 dark:text-amber-400 font-bold uppercase">Jumlah Siswa Remedial</p>
-              <p id="stat-remed" class="text-2xl font-black text-amber-900 dark:text-amber-200">0 Siswa</p>
-            </div>
-          </div>
-          <div class="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-700 h-64 flex items-center justify-center">
-            <canvas id="nilaiChart"></canvas>
           </div>
         </div>
 
@@ -740,10 +685,17 @@
 
   </main>
 
+  <!-- FOOTER DENGAN HAK CIPTA MUHLISIN -->
+  <footer class="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-4 mt-auto text-center text-xs text-slate-500 dark:text-slate-400 no-print">
+    <div class="max-w-7xl mx-auto px-4">
+      <p>&copy; 2026 Muhlisin. All Rights Reserved. | Merdeka Pro Kurikulum Merdeka System.</p>
+    </div>
+  </footer>
+
   <!-- JAVASCRIPT LOGIC -->
   <script>
     /* ==========================================================================
-       1. GLOBAL CONFIGURATION & INITIALIZATION
+       1. GLOBAL CONFIGURATION & API PANEL SECURITY PASSCODE (240785)
        ========================================================================== */
     let activeGeminiKey = localStorage.getItem('gemini_key') || "";
     let selectedModel = localStorage.getItem('gemini_model') || "gemini-1.5-flash";
@@ -751,7 +703,6 @@
     let db = null;
     let rawGeneratedQuiz = [];
     let fullGeneratedBackup = null;
-    let chartInstance = null;
 
     if (window.pdfjsLib) {
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
@@ -760,9 +711,36 @@
     window.addEventListener('DOMContentLoaded', () => {
       initConfigurations();
       initTheme();
-      initChart();
-      calculateAverages();
     });
+
+    // Membuka modal passcode saat tombol Kunci API diklik
+    function requestOpenConfigPanel() {
+      // Jika sudah pernah terbuka/terverifikasi di sesi ini, langsung buka panelnya
+      if (sessionStorage.getItem('api_unlocked') === 'true') {
+        toggleConfigPanel();
+      } else {
+        document.getElementById('api-lock-modal').classList.remove('hidden');
+        document.getElementById('input-api-passcode').value = '';
+        document.getElementById('input-api-passcode').focus();
+      }
+    }
+
+    function closeApiLockModal() {
+      document.getElementById('api-lock-modal').classList.add('hidden');
+    }
+
+    function verifyApiPasscode() {
+      const val = document.getElementById('input-api-passcode').value.trim();
+      const err = document.getElementById('api-lock-error');
+      if (val === '240785') {
+        sessionStorage.setItem('api_unlocked', 'true');
+        closeApiLockModal();
+        toggleConfigPanel();
+      } else {
+        err.classList.remove('hidden');
+        setTimeout(() => err.classList.add('hidden'), 3000);
+      }
+    }
 
     function initConfigurations() {
       const geminiStatus = document.getElementById('gemini-status');
@@ -871,7 +849,7 @@
     async function saveDataToFirebase() {
       if (!db) {
         showToast("Firebase belum terkonfigurasi secara valid", "error");
-        toggleConfigPanel();
+        requestOpenConfigPanel();
         return;
       }
       try {
@@ -943,7 +921,7 @@
     }
 
     /* ==========================================================================
-       3. GEMINI AI GENERATION API CALL (WITH PROTA, P5 & JURNAL)
+       3. GEMINI AI GENERATION API CALL (WITH PROTA & JURNAL)
        ========================================================================== */
     async function generateAllWithGemini() {
       const keyInput = document.getElementById('input-gemini-key').value.trim();
@@ -954,8 +932,7 @@
 
       if (!activeGeminiKey || activeGeminiKey.trim() === "") {
         showToast("Harap masukkan Gemini API Key terlebih dahulu!", "error");
-        document.getElementById('config-panel').classList.remove('hidden');
-        document.getElementById('input-gemini-key').focus();
+        requestOpenConfigPanel();
         return;
       }
 
@@ -969,8 +946,6 @@
       const model = document.getElementById('input-model').value;
       const materi = document.getElementById('input-materi').value;
       
-      const temaP5 = document.getElementById('input-tema-p5')?.value || "Gaya Hidup Berkelanjutan";
-      const judulP5 = document.getElementById('input-judul-p5')?.value || "Pengolahan Sampah";
       const jumlahSoal = document.getElementById('input-jumlah-soal')?.value || 5;
       const bentukSoal = document.getElementById('input-bentuk-soal')?.value || "Campuran";
       const isDiferensiasi = document.getElementById('input-diferensiasi')?.checked ? "Ya" : "Tidak";
@@ -990,7 +965,7 @@
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Memproses dengan (${selectedModel})...`;
 
-      const promptSystem = `Anda adalah pakar pengembang kurikulum Merdeka terkemuka di Indonesia.
+      const promptSystem = `Anda adalah pakar pengembang kurikulum Merdeka di Indonesia.
 Berdasarkan parameter berikut:
 - Satuan Pendidikan: ${sekolah}
 - Guru Pengampu: ${guru}
@@ -998,13 +973,12 @@ Berdasarkan parameter berikut:
 - Fase/Kelas: ${fase}
 - Semester: ${semester}
 - Model Pembelajaran: ${model}
-- Tema P5: ${temaP5} | Judul Projek: ${judulP5}
 - Ringkasan Materi: ${materi}
 - Pengaturan Kuis: Tepat ${jumlahSoal} soal tipe ${bentukSoal}.
 - Sertakan Rubrik Diferensiasi/Inklusi: ${isDiferensiasi}
 - Catatan Khusus Tambahan: ${instruksiKhusus}
 
-Buatkan perangkat pembelajaran terstruktur, akurat, dan sangat lengkap. Kembalikan HANYA format JSON murni tanpa karakter atau pembungkus markdown apapun.
+Buatkan perangkat pembelajaran secara terstruktur, akurat, dan sangat lengkap. Kembalikan HANYA format JSON murni tanpa karakter atau pembungkus markdown apapun.
 
 Skema JSON wajib:
 {
@@ -1019,7 +993,6 @@ Skema JSON wajib:
     {"no": 1, "materi": "Materi Pokok 1", "jp": 4, "b1": "4", "b2": "", "b3": "", "b4": ""}
   ],
   "modul": "Lengkap dengan Identitas, Profil Pelajar Pancasila, Pemahaman Bermakna, Pertanyaan Pemantik, Kegiatan Pembelajaran (Pendahuluan, Inti ${model}, Penutup), Asesmen Diferensiasi, & Refleksi.",
-  "p5": "Draf Modul Projek P5 lengkap dengan Tema, Alokasi Waktu, Dimensi Elemen P5, Tahap Pengenalan, Kontekstualisasi, Aksi, & Asesmen Performa.",
   "lkpd": "Lembar Kerja Peserta Didik (Instruksi, Tugas Kelompok/Individu, & Rubrik Penting)",
   "media": "Rekomendasi Media & Alat Pembelajaran Digital/Konvensional",
   "jurnal": "Rancangan Jurnal Agenda Harian Mengajar (Hari/Tgl, Jam ke-, TP, Aktivitas, & Catatan Evaluasi)",
@@ -1072,13 +1045,13 @@ Skema JSON wajib:
         fullGeneratedBackup = parsedData;
         renderGeneratedData(parsedData);
         logConsole.innerText = `Sukses digenerate dengan model: ${selectedModel}`;
-        showToast("Perangkat pembelajaran lengkap berhasil digenerate!", "success");
+        showToast("Perangkat pembelajaran berhasil digenerate!", "success");
         switchTab('cpatp-tab');
 
       } catch (err) {
         console.error("Gemini API Error:", err);
         logConsole.innerText = `Error: ${err.message}`;
-        showToast(`Gagal memanggil API: ${err.message}. Silakan coba ganti pilihan model AI di Pengaturan Kunci.`, "error");
+        showToast(`Gagal memanggil API: ${err.message}. Silakan buka pengaturan kunci API dan periksa kembali Key Anda.`, "error");
       } finally {
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-yellow-300"></i> Generate Perangkat Lengkap (Detail)`;
@@ -1132,9 +1105,7 @@ Skema JSON wajib:
       if (data.modul) {
         document.getElementById('modul-ajar-container').innerHTML = `<div class="whitespace-pre-line">${data.modul}</div>`;
       }
-      if (data.p5) {
-        document.getElementById('modul-p5-container').innerHTML = `<div class="whitespace-pre-line">${data.p5}</div>`;
-      }
+
       if (data.lkpd) {
         document.getElementById('lkpd-container').innerHTML = `<div class="whitespace-pre-line">${data.lkpd}</div>`;
       }
@@ -1319,41 +1290,11 @@ Skema JSON wajib:
     }
 
     /* ==========================================================================
-       5. REKAP NILAI, ANALISIS KETUNTASAN & CHART JS
+       5. REKAP NILAI & UTILITAS TAMPILAN
        ========================================================================== */
-    function initChart() {
-      const ctx = document.getElementById('nilaiChart')?.getContext('2d');
-      if (!ctx) return;
-      chartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['Ahmad Fauzi'],
-          datasets: [{
-            label: 'Nilai Rata-Rata Siswa',
-            data: [85],
-            backgroundColor: '#2563eb',
-            borderRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: { y: { min: 0, max: 100 } }
-        }
-      });
-    }
-
     function calculateAverages() {
       const rows = document.querySelectorAll('#rekap-body tr');
-      let totalAvg = 0;
-      let count = 0;
-      let tuntasCount = 0;
-      let remedCount = 0;
-      let labels = [];
-      let scores = [];
-
       rows.forEach(row => {
-        const name = row.querySelector('input[type="text"]')?.value || "Siswa";
         const f1 = parseFloat(row.querySelector('.val-f1')?.value || 0);
         const f2 = parseFloat(row.querySelector('.val-f2')?.value || 0);
         const sum = parseFloat(row.querySelector('.val-sum')?.value || 0);
@@ -1362,43 +1303,19 @@ Skema JSON wajib:
         if (avgCell) {
           const avg = (f1 + f2 + sum) / 3;
           avgCell.innerText = avg.toFixed(1);
-          totalAvg += avg;
-          count++;
-
-          labels.push(name);
-          scores.push(avg.toFixed(1));
-
-          if (avg >= 75) {
-            tuntasCount++;
-          } else {
-            remedCount++;
-          }
         }
       });
-
-      if (count > 0) {
-        const grandAvg = totalAvg / count;
-        document.getElementById('stat-avg').innerText = grandAvg.toFixed(1);
-        document.getElementById('stat-tuntas').innerText = Math.round((tuntasCount / count) * 100) + "%";
-        document.getElementById('stat-remed').innerText = remedCount + " Siswa";
-
-        if (chartInstance) {
-          chartInstance.data.labels = labels;
-          chartInstance.data.datasets[0].data = scores;
-          chartInstance.update();
-        }
-      }
     }
 
     function addRowSiswa() {
       const tbody = document.getElementById('rekap-body');
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td class="p-2 border dark:border-slate-700"><input type="text" value="Siswa Baru" oninput="calculateAverages()" class="w-full bg-transparent p-1 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
-        <td class="p-2 border dark:border-slate-700"><input type="number" value="70" oninput="calculateAverages()" class="val-f1 w-full bg-transparent p-1 text-center focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
-        <td class="p-2 border dark:border-slate-700"><input type="number" value="75" oninput="calculateAverages()" class="val-f2 w-full bg-transparent p-1 text-center focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
-        <td class="p-2 border dark:border-slate-700"><input type="number" value="80" oninput="calculateAverages()" class="val-sum w-full bg-transparent p-1 text-center focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
-        <td class="p-2 border dark:border-slate-700 bg-emerald-50/50 dark:bg-emerald-900/20 font-bold text-center text-emerald-700 dark:text-emerald-400 val-avg">75.0</td>
+        <td class="p-2 border dark:border-slate-700"><input type="text" value="Siswa Baru" class="w-full bg-transparent p-1 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
+        <td class="p-2 border dark:border-slate-700"><input type="number" value="0" oninput="calculateAverages()" class="val-f1 w-full bg-transparent p-1 text-center focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
+        <td class="p-2 border dark:border-slate-700"><input type="number" value="0" oninput="calculateAverages()" class="val-f2 w-full bg-transparent p-1 text-center focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
+        <td class="p-2 border dark:border-slate-700"><input type="number" value="0" oninput="calculateAverages()" class="val-sum w-full bg-transparent p-1 text-center focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
+        <td class="p-2 border dark:border-slate-700 bg-emerald-50/50 dark:bg-emerald-900/20 font-bold text-center text-emerald-700 dark:text-emerald-400 val-avg">0.0</td>
         <td class="p-2 border dark:border-slate-700 text-center">
           <button onclick="deleteRow(this)" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
         </td>
@@ -1409,7 +1326,6 @@ Skema JSON wajib:
 
     function deleteRow(btn) {
       btn.closest('tr').remove();
-      calculateAverages();
     }
 
     function exportNilaiToExcel() {
