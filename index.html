@@ -208,6 +208,8 @@
         <h2 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
           <i class="fa-solid fa-sliders text-blue-600"></i> Pengaturan Parameter Kurikulum Merdeka
         </h2>
+        
+        <!-- Grid Parameter Umum -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Mata Pelajaran</label>
@@ -239,6 +241,28 @@
               <option value="Discovery Learning">Discovery Learning</option>
               <option value="Inquiry Learning">Inquiry Learning</option>
             </select>
+          </div>
+        </div>
+
+        <!-- FITUR BARU: PENGATURAN KUIS DINAMIS -->
+        <div class="bg-slate-50/80 p-4 rounded-xl border border-blue-100 mb-6 space-y-3">
+          <h3 class="text-xs font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-list-check text-blue-600"></i> Pengaturan Dinamis Kuis & Asesmen
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Jumlah Soal</label>
+              <input type="number" id="input-jumlah-soal" value="5" min="1" max="25" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Masukkan jumlah soal (misal: 5 atau 10)">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Bentuk / Tipe Soal</label>
+              <select id="input-bentuk-soal" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <option value="Campuran (Pilihan Ganda, Essay & Uraian)">Campuran (PG, Essay & Uraian)</option>
+                <option value="Pilihan Ganda Saja">Pilihan Ganda Saja</option>
+                <option value="Essay Pendek Saja">Essay Pendek Saja</option>
+                <option value="Uraian / Studi Kasus Saja">Uraian / Studi Kasus Saja</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -383,10 +407,10 @@
     <!-- TAB 6: KUIS & REKAP NILAI INTERAKTIF -->
     <section id="kuisrekap-tab" class="tab-content hidden space-y-6">
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
-        <!-- Kuis Bank Soal -->
+        <!-- Kuis Bank Soal Dinamis -->
         <div>
           <h2 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-circle-question text-blue-600"></i> Bank Soal & Kuis (Pilihan Ganda & Essay)
+            <i class="fa-solid fa-circle-question text-blue-600"></i> Bank Soal & Kuis (Dinamis: Pilihan Ganda, Essay, Uraian)
           </h2>
           <div id="kuis-container" class="text-xs text-slate-700 space-y-4">
             <p class="text-slate-400 italic">Belum ada kuis yang digenerate.</p>
@@ -555,6 +579,8 @@
           fase: document.getElementById('input-fase').value,
           semester: document.getElementById('input-semester').value,
           model: document.getElementById('input-model').value,
+          jumlahSoal: document.getElementById('input-jumlah-soal').value,
+          bentukSoal: document.getElementById('input-bentuk-soal').value,
           materi: document.getElementById('input-materi').value,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
@@ -616,7 +642,7 @@
     }
 
     /* ==========================================================================
-       3. GEMINI AI GENERATION API CALL (WITH MULTI-MODEL SUPPORT)
+       3. GEMINI AI GENERATION API CALL (WITH DYNAMIC QUIZ & MULTI-MODEL SUPPORT)
        ========================================================================== */
     async function generateAllWithGemini() {
       const keyInput = document.getElementById('input-gemini-key').value.trim();
@@ -639,6 +665,10 @@
       const semester = document.getElementById('input-semester').value;
       const model = document.getElementById('input-model').value;
       const materi = document.getElementById('input-materi').value;
+      
+      // Ambil nilai Kuis Dinamis
+      const jumlahSoal = document.getElementById('input-jumlah-soal')?.value || 5;
+      const bentukSoal = document.getElementById('input-bentuk-soal')?.value || "Campuran";
 
       if (!materi.trim()) {
         showToast("Harap masukkan ringkasan/materi pelajaran!", "error");
@@ -661,6 +691,7 @@ Berdasarkan parameter berikut:
 - Semester: ${semester}
 - Model Pembelajaran: ${model}
 - Ringkasan Materi: ${materi}
+- Pengaturan Kuis: Buatkan tepat ${jumlahSoal} buah soal kuis dengan bentuk/tipe: ${bentukSoal}.
 
 Buatkan perangkat pembelajaran secara terstruktur, akurat, dan sangat lengkap. Kembalikan HANYA format JSON murni tanpa karakter atau pembungkus markdown apapun.
 
@@ -677,7 +708,13 @@ Skema JSON wajib:
   "lkpd": "Lembar Kerja Peserta Didik (Instruksi, Tugas Kelompok/Individu, & Rubrik Penting)",
   "media": "Rekomendasi Media & Alat Pembelajaran Digital/Konvensional",
   "kuis": [
-    {"no": 1, "soal": "Pertanyaan Pilihan Ganda/Essay", "opsi": ["A...", "B...", "C...", "D..."], "kunci": "Kunci Jawaban"}
+    {
+      "no": 1, 
+      "tipe": "Pilihan Ganda / Essay Pendek / Uraian",
+      "soal": "Pertanyaan...", 
+      "opsi": ["A...", "B...", "C...", "D..."], 
+      "kunci": "Kunci jawaban murni (jika PG) atau pedoman penskoran (jika Essay/Uraian)"
+    }
   ]
 }`;
 
@@ -772,17 +809,28 @@ Skema JSON wajib:
         document.getElementById('media-container').innerHTML = `<div class="whitespace-pre-line">${data.media}</div>`;
       }
 
+      // RENDER KUIS DINAMIS
       if (data.kuis && Array.isArray(data.kuis)) {
         const kuisCont = document.getElementById('kuis-container');
         kuisCont.innerHTML = data.kuis.map(q => `
-          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-            <p class="font-semibold text-slate-800">${q.no}. ${q.soal}</p>
-            ${q.opsi && q.opsi.length > 0 ? `
-              <ul class="list-disc list-inside mt-1 ml-2 text-slate-600">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-slate-800 text-xs">Soal No. ${q.no}</span>
+              <span class="text-[10px] bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full font-semibold uppercase">${q.tipe || 'Kuis'}</span>
+            </div>
+            <p class="text-xs font-medium text-slate-700 leading-relaxed">${q.soal}</p>
+            
+            ${q.opsi && Array.isArray(q.opsi) && q.opsi.length > 0 ? `
+              <ul class="list-disc list-inside ml-2 text-xs text-slate-600 space-y-1 my-2">
                 ${q.opsi.map(o => `<li>${o}</li>`).join('')}
               </ul>
             ` : ''}
-            <p class="mt-2 text-[11px] text-emerald-700 font-medium">Kunci: ${q.kunci}</p>
+
+            <div class="bg-emerald-50/70 p-2.5 rounded-lg border border-emerald-200/60 mt-2">
+              <p class="text-[11px] text-emerald-800 font-medium">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i> <span class="font-bold">Kunci / Rubrik Jawaban:</span> ${q.kunci}
+              </p>
+            </div>
           </div>
         `).join('');
       }
