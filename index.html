@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +9,12 @@
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+    }
+  </script>
+
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Google Fonts: Inter -->
@@ -19,25 +25,33 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
   <!-- Mammoth.js for Word DOCX Reading -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <!-- HTML-Docx-JS for Exporting Web Pages to Word -->
+  <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.min.js"></script>
   <!-- Firebase JS SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   
   <style>
-    body { font-family: 'Inter', sans-serif; }
+    body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; }
     .tab-active { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 600; }
+    .dark .tab-active { border-bottom: 3px solid #60a5fa; color: #60a5fa; }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     .logo-gradient-text { background: linear-gradient(135deg, #60a5fa, #ffffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    
     @media print {
-      header, nav, #config-panel, button, .no-print { display: none !important; }
-      body { background: white; color: black; }
+      header, nav, #config-panel, button, .no-print, .branding-section { display: none !important; }
+      body { background: white !important; color: black !important; padding: 0; margin: 0; }
       .tab-content { display: block !important; }
+      @page { size: A4; margin: 2cm 2cm 2cm 2.5cm; }
+      .print-header { display: block !important; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+      .print-footer { display: block !important; margin-top: 30px; }
     }
+    .print-header, .print-footer { display: none; }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col">
 
   <!-- TOP HEADER & PANEL CONFIGURATION -->
   <header class="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white shadow-xl">
@@ -46,7 +60,6 @@
       <!-- Brand & Logo Container -->
       <div class="flex items-center gap-3.5">
         <div class="relative">
-          <!-- Logo Gambar Merdeka Pro (File Lokal) -->
           <img id="app-logo" src="logo.jpg" alt="Merdeka Pro Logo" class="w-12 h-12 rounded-xl object-cover border-2 border-white/20 shadow-md">
           <span class="absolute -top-1 -right-1 bg-amber-400 text-slate-950 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase shadow">PRO</span>
         </div>
@@ -54,12 +67,17 @@
           <h1 class="text-2xl font-extrabold tracking-tight flex items-center gap-2 logo-gradient-text">
             MERDEKA PRO
           </h1>
-          <p class="text-blue-200 text-xs sm:text-sm font-medium">Otomatisasi CP, ATP, TP, Prota, Promes, Modul Ajar, LKPD, Kuis & Rekap Nilai dengan Gemini AI Multi-Model</p>
+          <p class="text-blue-200 text-xs sm:text-sm font-medium">Otomatisasi Perangkat Ajar Kurikulum Merdeka Terintegrasi & Multi-Model AI</p>
         </div>
       </div>
       
-      <!-- Status Badges -->
+      <!-- Status Badges & Controls -->
       <div class="flex items-center gap-3">
+        <!-- Mode Gelap / Terang Toggle -->
+        <button onclick="toggleDarkMode()" title="Ubah Mode Tampilan" class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg text-xs font-semibold transition">
+          <i id="theme-icon" class="fa-solid fa-moon"></i>
+        </button>
+
         <div id="gemini-status" class="flex items-center gap-1.5 px-3 py-1 bg-red-500/20 text-red-200 border border-red-400/30 text-xs rounded-full cursor-pointer" onclick="toggleConfigPanel()">
           <span class="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span> Gemini: Unset
         </div>
@@ -67,7 +85,7 @@
           <span class="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span> Firebase: Unset
         </div>
         <button id="toggle-config-btn" onclick="toggleConfigPanel()" class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg text-xs font-semibold transition flex items-center gap-1">
-          <i class="fa-solid fa-gear text-sm"></i> Pengaturan Kunci
+          <i class="fa-solid fa-gear text-sm"></i> Kunci API
         </button>
       </div>
     </div>
@@ -130,24 +148,24 @@
   </header>
 
   <!-- NAVIGATION TABS -->
-  <nav class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-20">
+  <nav class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm sticky top-0 z-20">
     <div class="max-w-7xl mx-auto px-4 flex overflow-x-auto custom-scrollbar">
       <button onclick="switchTab('input-tab')" id="tab-input-tab" class="tab-button tab-active py-3.5 px-4 text-xs font-medium whitespace-nowrap flex items-center gap-2">
-        <i class="fa-solid fa-file-pen text-blue-600"></i> 1. Input & Konfigurasi
+        <i class="fa-solid fa-file-pen text-blue-600 dark:text-blue-400"></i> 1. Parameter & Administrasi
       </button>
-      <button onclick="switchTab('cpatp-tab')" id="tab-cpatp-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
+      <button onclick="switchTab('cpatp-tab')" id="tab-cpatp-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
         <i class="fa-solid fa-sitemap"></i> 2. CP, TP & ATP
       </button>
-      <button onclick="switchTab('protapromes-tab')" id="tab-protapromes-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
+      <button onclick="switchTab('protapromes-tab')" id="tab-protapromes-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
         <i class="fa-solid fa-calendar-days"></i> 3. Prota & Promes
       </button>
-      <button onclick="switchTab('modul-tab')" id="tab-modul-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
+      <button onclick="switchTab('modul-tab')" id="tab-modul-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
         <i class="fa-solid fa-book-open"></i> 4. Modul Ajar / RPP
       </button>
-      <button onclick="switchTab('lkpd-tab')" id="tab-lkpd-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
+      <button onclick="switchTab('lkpd-tab')" id="tab-lkpd-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
         <i class="fa-solid fa-flask"></i> 5. LKPD & Media
       </button>
-      <button onclick="switchTab('kuisrekap-tab')" id="tab-kuisrekap-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
+      <button onclick="switchTab('kuisrekap-tab')" id="tab-kuisrekap-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
         <i class="fa-solid fa-chart-simple"></i> 6. Kuis & Rekap Nilai
       </button>
     </div>
@@ -170,121 +188,176 @@
     </div>
 
     <!-- LOGO REVIEW / BRANDING SECTION -->
-    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 no-print">
+    <section class="branding-section bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 no-print">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
-        <!-- Logo Display Box (File Lokal) -->
-        <div class="flex flex-col items-center text-center p-4 bg-slate-50 rounded-xl border border-slate-100">
+        <!-- Logo Display Box -->
+        <div class="flex flex-col items-center text-center p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
           <img src="logo.jpg" alt="Merdeka Pro Identity" class="w-32 h-32 rounded-2xl object-cover shadow-lg mb-3 border-2 border-blue-500/20">
-          <h3 class="font-bold text-slate-900 text-base">Merdeka Pro</h3>
-          <p class="text-xs text-blue-600 font-semibold">Kurikulum & Logo Resmi</p>
+          <h3 class="font-bold text-slate-900 dark:text-white text-base">Merdeka Pro</h3>
+          <p class="text-xs text-blue-600 dark:text-blue-400 font-semibold">Kurikulum & Logo Resmi</p>
           <div class="flex items-center gap-1 text-amber-400 text-xs mt-2">
             <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-            <span class="text-slate-600 text-[11px] font-medium ml-1">5.0 (Review Terbaik)</span>
+            <span class="text-slate-600 dark:text-slate-400 text-[11px] font-medium ml-1">5.0 (Review Terbaik)</span>
           </div>
         </div>
 
         <!-- User Reviews Grid -->
         <div class="lg:col-span-2 space-y-3">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Respon & Review Pengguna</h3>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Respon & Review Pengguna</h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs space-y-1">
-              <p class="font-semibold text-slate-800"><i class="fa-solid fa-user-circle text-blue-500"></i> Guru Andi</p>
-              <p class="text-slate-600 italic">"Sangat membantu! Pembuatan Modul Ajar dan Promes jadi sangat cepat."</p>
-              <span class="inline-block text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-medium">5 Bintang</span>
+            <div class="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700 text-xs space-y-1">
+              <p class="font-semibold text-slate-800 dark:text-slate-200"><i class="fa-solid fa-user-circle text-blue-500"></i> Guru Andi</p>
+              <p class="text-slate-600 dark:text-slate-400 italic">"Sangat membantu! Pembuatan Modul Ajar dan Promes jadi sangat cepat."</p>
+              <span class="inline-block text-[10px] bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded font-medium">5 Bintang</span>
             </div>
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs space-y-1">
-              <p class="font-semibold text-slate-800"><i class="fa-solid fa-user-circle text-emerald-500"></i> Guru Budi</p>
-              <p class="text-slate-600 italic">"Memudahkan tugas harian. Fitur rekap nilai excel-nya luar biasa."</p>
-              <span class="inline-block text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-medium">5 Bintang</span>
+            <div class="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700 text-xs space-y-1">
+              <p class="font-semibold text-slate-800 dark:text-slate-200"><i class="fa-solid fa-user-circle text-emerald-500"></i> Guru Budi</p>
+              <p class="text-slate-600 dark:text-slate-400 italic">"Memudahkan tugas harian. Fitur rekap nilai excel-nya luar biasa."</p>
+              <span class="inline-block text-[10px] bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded font-medium">5 Bintang</span>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- TAB 1: INPUT & KONFIGURASI MATERI -->
+    <!-- TAB 1: INPUT PARAMETER & IDENTITAS ADMINISTRASI SEKOLAH -->
     <section id="input-tab" class="tab-content space-y-6">
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-        <h2 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <i class="fa-solid fa-sliders text-blue-600"></i> Pengaturan Parameter Kurikulum Merdeka
+      
+      <!-- FITUR BARU: FORM IDENTITAS SEKOLAH (KOP & TANDATANGAN) -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+        <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+          <i class="fa-solid fa-school text-blue-600 dark:text-blue-400"></i> Identitas Sekolah & Lembar Pengesahan Administrasi
         </h2>
-        
-        <!-- Grid Parameter Umum -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Mata Pelajaran</label>
-            <input type="text" id="input-mapel" value="Informatika" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Satuan Pendidikan / Sekolah</label>
+            <input type="text" id="input-nama-sekolah" value="SDN 03 Limbangan" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Fase / Kelas</label>
-            <select id="input-fase" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Guru Mata Pelajaran</label>
+            <input type="text" id="input-nama-guru" value="Muhlisin, S.Pd." class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">NIP Guru</label>
+            <input type="text" id="input-nip-guru" value="19900101 202201 1 001" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Kepala Sekolah</label>
+            <input type="text" id="input-nama-kepsek" value="Kepala Sekolah, S.Pd., M.Pd." class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">NIP Kepala Sekolah</label>
+            <input type="text" id="input-nip-kepsek" value="19850202 201001 1 002" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Kota / Kabupaten Penetapan</label>
+            <input type="text" id="input-kota-penetapan" value="Limbangan" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tanggal Penetapan Dokumen</label>
+            <input type="text" id="input-tanggal-penetapan" value="16 November 2026" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-6">
+        <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-blue-600 dark:text-blue-400"></i> Pengaturan Parameter Kurikulum Merdeka
+        </h2>
+        
+        <!-- Parameter Kurikulum -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Mata Pelajaran</label>
+            <input type="text" id="input-mapel" value="Pendidikan Agama Islam dan Budi Pekerti" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Fase / Kelas</label>
+            <select id="input-fase" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <option value="Fase C (Kelas 5 SD)">Fase C (Kelas 5 SD)</option>
+              <option value="Fase A (Kelas 1-2 SD)">Fase A (Kelas 1-2 SD)</option>
+              <option value="Fase B (Kelas 3-4 SD)">Fase B (Kelas 3-4 SD)</option>
               <option value="Fase D (Kelas 7-9 SMP)">Fase D (Kelas 7-9 SMP)</option>
               <option value="Fase E (Kelas 10 SMA)">Fase E (Kelas 10 SMA)</option>
               <option value="Fase F (Kelas 11-12 SMA)">Fase F (Kelas 11-12 SMA)</option>
-              <option value="Fase A (Kelas 1-2 SD)">Fase A (Kelas 1-2 SD)</option>
-              <option value="Fase B (Kelas 3-4 SD)">Fase B (Kelas 3-4 SD)</option>
-              <option value="Fase C (Kelas 5-6 SD)">Fase C (Kelas 5-6 SD)</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Semester</label>
-            <select id="input-semester" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Semester</label>
+            <select id="input-semester" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
               <option value="1 (Ganjil)">1 (Ganjil)</option>
               <option value="2 (Genap)">2 (Genap)</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Model Pembelajaran</label>
-            <select id="input-model" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
-              <option value="Project-Based Learning (PjBL)">Project-Based Learning (PjBL)</option>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Model Pembelajaran Utama</label>
+            <select id="input-model" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
               <option value="Problem-Based Learning (PBL)">Problem-Based Learning (PBL)</option>
+              <option value="Project-Based Learning (PjBL)">Project-Based Learning (PjBL)</option>
               <option value="Discovery Learning">Discovery Learning</option>
               <option value="Inquiry Learning">Inquiry Learning</option>
             </select>
           </div>
         </div>
 
-        <!-- FITUR BARU: PENGATURAN KUIS DINAMIS -->
-        <div class="bg-slate-50/80 p-4 rounded-xl border border-blue-100 mb-6 space-y-3">
-          <h3 class="text-xs font-bold text-slate-800 flex items-center gap-2">
-            <i class="fa-solid fa-list-check text-blue-600"></i> Pengaturan Dinamis Kuis & Asesmen
+        <!-- FITUR BARU: PENGATURAN KUIS DINAMIS & DIFERENSIASI -->
+        <div class="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-blue-100 dark:border-slate-700 space-y-4">
+          <h3 class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+            <i class="fa-solid fa-list-check text-blue-600 dark:text-blue-400"></i> Opsi Kuis Dinamis & Fitur Inklusi / Asesmen Diferensiasi
           </h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Jumlah Soal</label>
-              <input type="number" id="input-jumlah-soal" value="5" min="1" max="25" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Masukkan jumlah soal (misal: 5 atau 10)">
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Jumlah Soal Kuis</label>
+              <input type="number" id="input-jumlah-soal" value="5" min="1" max="25" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Bentuk / Tipe Soal</label>
-              <select id="input-bentuk-soal" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Bentuk / Tipe Soal Kuis</label>
+              <select id="input-bentuk-soal" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 <option value="Campuran (Pilihan Ganda, Essay & Uraian)">Campuran (PG, Essay & Uraian)</option>
                 <option value="Pilihan Ganda Saja">Pilihan Ganda Saja</option>
                 <option value="Essay Pendek Saja">Essay Pendek Saja</option>
                 <option value="Uraian / Studi Kasus Saja">Uraian / Studi Kasus Saja</option>
               </select>
             </div>
+            <div class="flex items-center pt-5">
+              <label class="inline-flex items-center cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <input type="checkbox" id="input-diferensiasi" checked class="sr-only peer">
+                <div class="relative w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-slate-600 peer-checked:bg-blue-600"></div>
+                <span class="ms-3">Sertakan Rubrik Penilaian Diferensiasi & Inklusi</span>
+              </label>
+            </div>
           </div>
         </div>
 
-        <h2 class="text-base font-bold text-slate-800 mb-2 flex items-center gap-2">
-          <i class="fa-solid fa-file-text text-blue-600"></i> Input Ringkasan / Teks Materi Utama
-        </h2>
-        <p class="text-xs text-slate-500 mb-3">Unggah dokumen (PDF, DOCX, TXT, Gambar) atau tempelkan silabus/materi ringkas secara manual.</p>
-        
-        <!-- File Upload Section -->
-        <div class="mb-4 p-4 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 hover:bg-slate-100 transition text-center relative cursor-pointer" onclick="document.getElementById('file-upload').click()">
-          <input type="file" id="file-upload" accept=".pdf,.docx,.doc,.txt,image/*" class="hidden" onchange="handleFileUpload(event)">
-          <div class="space-y-1">
-            <i class="fa-solid fa-cloud-arrow-up text-3xl text-blue-500"></i>
-            <p class="text-xs font-semibold text-slate-700">Klik atau Drag & Drop file ke sini untuk mengunggah</p>
-            <p class="text-[10px] text-slate-400">Mendukung format PDF, Word (.docx), TXT, atau Gambar (PNG, JPG)</p>
-          </div>
-          <div id="file-loading" class="hidden absolute inset-0 bg-white/90 rounded-xl flex items-center justify-center gap-2 text-xs font-semibold text-blue-600">
-            <i class="fa-solid fa-spinner animate-spin text-lg"></i> Membaca isi file...
-          </div>
+        <!-- FITUR BARU: INSTRUKSI KHUSUS UNTUK AI (PROMPT CUSTOMIZATION) -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <i class="fa-solid fa-comment-dots text-indigo-500"></i> Instruksi Khusus Tambahan untuk AI (Opsional)
+          </label>
+          <input type="text" id="input-instruksi-khusus" placeholder="Contoh: Fokuskan kegiatan pada karakter P5 Gotong Royong, berikan variasi tingkat kesulitan HOTS pada soal." class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
         </div>
 
-        <textarea id="input-materi" rows="6" placeholder="Contoh: Bab Algoritma dan Pemrograman Python Dasar. Membahas variabel, tipe data, kondisinal (if-else), perulangan (for/while), dan pembuatan program sederhana..." class="w-full border border-slate-300 rounded-lg p-3 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none leading-relaxed"></textarea>
+        <div>
+          <h2 class="text-base font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-file-text text-blue-600 dark:text-blue-400"></i> Input Ringkasan / Teks Materi Utama
+          </h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Unggah dokumen (PDF, DOCX, TXT, Gambar) atau tempelkan silabus/materi ringkas secara manual.</p>
+          
+          <!-- File Upload Section -->
+          <div class="mb-4 p-4 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900/40 hover:bg-slate-100 dark:hover:bg-slate-900/80 transition text-center relative cursor-pointer" onclick="document.getElementById('file-upload').click()">
+            <input type="file" id="file-upload" accept=".pdf,.docx,.doc,.txt,image/*" class="hidden" onchange="handleFileUpload(event)">
+            <div class="space-y-1">
+              <i class="fa-solid fa-cloud-arrow-up text-3xl text-blue-500"></i>
+              <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Klik atau Drag & Drop file ke sini untuk mengunggah</p>
+              <p class="text-[10px] text-slate-400">Mendukung format PDF, Word (.docx), TXT, atau Gambar (PNG, JPG)</p>
+            </div>
+            <div id="file-loading" class="hidden absolute inset-0 bg-white/90 dark:bg-slate-900/90 rounded-xl flex items-center justify-center gap-2 text-xs font-semibold text-blue-600 dark:text-blue-400">
+              <i class="fa-solid fa-spinner animate-spin text-lg"></i> Membaca isi file...
+            </div>
+          </div>
+
+          <textarea id="input-materi" rows="6" placeholder="Contoh: Bab 4 Hidup Lapang dengan Berbagi. Membahas pengertian Zakat Fitrah, Zakat Mal, Infak, Sedekah, Hadiah, serta hikmah berbagi dalam kehidupan sehari-hari..." class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg p-3 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none leading-relaxed"></textarea>
+        </div>
 
         <div class="mt-6 flex flex-wrap justify-between items-center gap-4">
           <button onclick="saveDataToFirebase()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-xs font-semibold shadow transition flex items-center gap-2">
@@ -300,37 +373,66 @@
 
     <!-- TAB 2: CP, TP & ATP -->
     <section id="cpatp-tab" class="tab-content hidden space-y-6">
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
-            <i class="fa-solid fa-network-wired text-blue-600"></i> Capaian Pembelajaran (CP) & Tujuan Pembelajaran (TP)
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+        <div class="flex flex-wrap justify-between items-center gap-4 mb-4 no-print">
+          <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+            <i class="fa-solid fa-network-wired text-blue-600 dark:text-blue-400"></i> Capaian Pembelajaran (CP) & Tujuan Pembelajaran (TP)
           </h2>
-          <button onclick="window.print()" class="text-xs text-blue-600 border border-blue-200 hover:bg-blue-50 px-3 py-1.5 rounded-lg font-medium transition no-print">
-            <i class="fa-solid fa-print"></i> Cetak / Simpan PDF
-          </button>
+          <div class="flex gap-2">
+            <button onclick="exportToWord('cpatp-tab', 'CP_ATP_Kurikulum_Merdeka')" class="text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-file-word text-blue-500"></i> Ekspor Word (.docx)
+            </button>
+            <button onclick="window.print()" class="text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-medium transition">
+              <i class="fa-solid fa-print"></i> Cetak PDF
+            </button>
+          </div>
         </div>
         
-        <div id="cp-content" class="space-y-4 text-xs text-slate-700">
-          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-            <h3 class="font-bold text-slate-900 mb-1">Capaian Pembelajaran (CP) Elemen:</h3>
-            <p id="output-cp" class="text-slate-600 leading-relaxed italic">Belum digenerate. Silakan klik tombol 'Generate Perangkat Lengkap' di Tab 1.</p>
+        <!-- Header Pengesahan Print / Export -->
+        <div class="print-header">
+          <h2 id="kop-sekolah-1" class="text-center font-bold text-lg uppercase">SDN 03 LIMBANGAN</h2>
+          <p id="kop-sub-1" class="text-center text-xs">ALUR TUJUAN PEMBELAJARAN (ATP) KURIKULUM MERDEKA</p>
+        </div>
+
+        <div id="cp-content" class="space-y-4 text-xs text-slate-700 dark:text-slate-300">
+          <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+            <h3 class="font-bold text-slate-900 dark:text-white mb-1">Capaian Pembelajaran (CP) Elemen:</h3>
+            <p id="output-cp" class="text-slate-600 dark:text-slate-400 leading-relaxed italic">Belum digenerate. Silakan klik tombol 'Generate Perangkat Lengkap' di Tab 1.</p>
           </div>
 
-          <h3 class="font-bold text-slate-900 pt-2">Alur Tujuan Pembelajaran (ATP):</h3>
+          <h3 class="font-bold text-slate-900 dark:text-white pt-2">Alur Tujuan Pembelajaran (ATP):</h3>
           <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse border border-slate-200 rounded-lg overflow-hidden">
-              <thead class="bg-slate-100 text-slate-700 text-[11px] uppercase">
+            <table class="w-full text-left border-collapse border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+              <thead class="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] uppercase">
                 <tr>
-                  <th class="p-3 border-b">Kode TP</th>
-                  <th class="p-3 border-b">Tujuan Pembelajaran (TP)</th>
-                  <th class="p-3 border-b">Materi Pokok</th>
-                  <th class="p-3 border-b">Alokasi Waktu (JP)</th>
+                  <th class="p-3 border-b dark:border-slate-600">Kode TP</th>
+                  <th class="p-3 border-b dark:border-slate-600">Tujuan Pembelajaran (TP)</th>
+                  <th class="p-3 border-b dark:border-slate-600">Materi Pokok</th>
+                  <th class="p-3 border-b dark:border-slate-600">Alokasi Waktu (JP)</th>
                 </tr>
               </thead>
-              <tbody id="table-atp-body" class="divide-y divide-slate-200">
+              <tbody id="table-atp-body" class="divide-y divide-slate-200 dark:divide-slate-700">
                 <tr><td colspan="4" class="p-4 text-center text-slate-400">Data ATP kosong</td></tr>
               </tbody>
             </table>
+          </div>
+        </div>
+
+        <!-- Footer Pengesahan Tanda Tangan -->
+        <div class="print-footer grid grid-cols-2 text-center text-xs mt-10">
+          <div>
+            <p>Mengetahui,</p>
+            <p class="font-bold">Kepala Sekolah</p>
+            <br><br><br>
+            <p id="ttd-kepsek-1" class="font-bold underline">_______________________</p>
+            <p id="nip-kepsek-1">NIP. -</p>
+          </div>
+          <div>
+            <p id="ttd-kota-tgl-1">Limbangan, 16 November 2026</p>
+            <p class="font-bold">Guru Mata Pelajaran</p>
+            <br><br><br>
+            <p id="ttd-guru-1" class="font-bold underline">_______________________</p>
+            <p id="nip-guru-1">NIP. -</p>
           </div>
         </div>
       </div>
@@ -338,27 +440,38 @@
 
     <!-- TAB 3: PROTA & PROMES -->
     <section id="protapromes-tab" class="tab-content hidden space-y-6">
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-        <h2 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <i class="fa-solid fa-calendar-check text-blue-600"></i> Program Tahunan (Prota) & Program Semester (Promes)
-        </h2>
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+        <div class="flex flex-wrap justify-between items-center gap-4 mb-4 no-print">
+          <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+            <i class="fa-solid fa-calendar-check text-blue-600 dark:text-blue-400"></i> Program Tahunan (Prota) & Program Semester (Promes)
+          </h2>
+          <div class="flex gap-2">
+            <button onclick="exportToWord('protapromes-tab', 'Promes_Kurikulum_Merdeka')" class="text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-file-word text-blue-500"></i> Ekspor Word (.docx)
+            </button>
+            <button onclick="window.print()" class="text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-medium transition">
+              <i class="fa-solid fa-print"></i> Cetak PDF
+            </button>
+          </div>
+        </div>
+
         <div class="space-y-6">
           <div>
-            <h3 class="font-semibold text-xs text-slate-700 mb-2">Rancangan Program Semester (Promes)</h3>
+            <h3 class="font-semibold text-xs text-slate-700 dark:text-slate-300 mb-2">Rancangan Program Semester (Promes)</h3>
             <div class="overflow-x-auto">
-              <table class="w-full text-left border-collapse border border-slate-200">
-                <thead class="bg-slate-100 text-slate-700 text-[11px]">
+              <table class="w-full text-left border-collapse border border-slate-200 dark:border-slate-700">
+                <thead class="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px]">
                   <tr>
-                    <th class="p-3 border">No</th>
-                    <th class="p-3 border">Materi / TP</th>
-                    <th class="p-3 border text-center">JML JP</th>
-                    <th class="p-3 border text-center">Bulan 1</th>
-                    <th class="p-3 border text-center">Bulan 2</th>
-                    <th class="p-3 border text-center">Bulan 3</th>
-                    <th class="p-3 border text-center">Bulan 4</th>
+                    <th class="p-3 border dark:border-slate-600">No</th>
+                    <th class="p-3 border dark:border-slate-600">Materi / TP</th>
+                    <th class="p-3 border dark:border-slate-600 text-center">JML JP</th>
+                    <th class="p-3 border dark:border-slate-600 text-center">Bulan 1</th>
+                    <th class="p-3 border dark:border-slate-600 text-center">Bulan 2</th>
+                    <th class="p-3 border dark:border-slate-600 text-center">Bulan 3</th>
+                    <th class="p-3 border dark:border-slate-600 text-center">Bulan 4</th>
                   </tr>
                 </thead>
-                <tbody id="promes-table-body" class="text-xs divide-y divide-slate-200">
+                <tbody id="promes-table-body" class="text-xs divide-y divide-slate-200 dark:divide-slate-700">
                   <tr><td colspan="7" class="p-4 text-center text-slate-400">Data Promes Belum Digenerate</td></tr>
                 </tbody>
               </table>
@@ -370,11 +483,22 @@
 
     <!-- TAB 4: MODUL AJAR / RPP -->
     <section id="modul-tab" class="tab-content hidden space-y-6">
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
-        <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
-          <i class="fa-solid fa-book text-blue-600"></i> Draf Modul Ajar (RPP Plus)
-        </h2>
-        <div id="modul-ajar-container" class="prose max-w-none text-xs text-slate-700 leading-relaxed space-y-4">
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+        <div class="flex flex-wrap justify-between items-center gap-4 no-print">
+          <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+            <i class="fa-solid fa-book text-blue-600 dark:text-blue-400"></i> Draf Modul Ajar (RPP Plus)
+          </h2>
+          <div class="flex gap-2">
+            <button onclick="exportToWord('modul-tab', 'Modul_Ajar_Kurikulum_Merdeka')" class="text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-file-word text-blue-500"></i> Ekspor Word (.docx)
+            </button>
+            <button onclick="window.print()" class="text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-medium transition">
+              <i class="fa-solid fa-print"></i> Cetak PDF
+            </button>
+          </div>
+        </div>
+
+        <div id="modul-ajar-container" class="prose dark:prose-invert max-w-none text-xs text-slate-700 dark:text-slate-300 leading-relaxed space-y-4">
           <p class="text-slate-400 italic">Klik generate di tab pertama untuk menyusun modul ajar otomatis...</p>
         </div>
       </div>
@@ -384,20 +508,20 @@
     <section id="lkpd-tab" class="tab-content hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- LKPD -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-          <h2 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-file-pen text-blue-600"></i> Lembar Kerja Peserta Didik (LKPD)
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+          <h2 class="text-base font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-file-pen text-blue-600 dark:text-blue-400"></i> Lembar Kerja Peserta Didik (LKPD)
           </h2>
-          <div id="lkpd-container" class="text-xs text-slate-700 space-y-3">
+          <div id="lkpd-container" class="text-xs text-slate-700 dark:text-slate-300 space-y-3">
             <p class="text-slate-400 italic">Belum ada LKPD yang digenerate.</p>
           </div>
         </div>
         <!-- Media Pembelajaran -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-          <h2 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-photo-film text-blue-600"></i> Rencana Media Pembelajaran
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+          <h2 class="text-base font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-photo-film text-blue-600 dark:text-blue-400"></i> Rencana Media Pembelajaran
           </h2>
-          <div id="media-container" class="text-xs text-slate-700 space-y-3">
+          <div id="media-container" class="text-xs text-slate-700 dark:text-slate-300 space-y-3">
             <p class="text-slate-400 italic">Belum ada instruksi media pembelajaran.</p>
           </div>
         </div>
@@ -406,27 +530,40 @@
 
     <!-- TAB 6: KUIS & REKAP NILAI INTERAKTIF -->
     <section id="kuisrekap-tab" class="tab-content hidden space-y-6">
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-6">
         <!-- Kuis Bank Soal Dinamis -->
         <div>
-          <h2 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-circle-question text-blue-600"></i> Bank Soal & Kuis (Dinamis: Pilihan Ganda, Essay, Uraian)
-          </h2>
-          <div id="kuis-container" class="text-xs text-slate-700 space-y-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3 no-print">
+            <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <i class="fa-solid fa-circle-question text-blue-600 dark:text-blue-400"></i> Bank Soal & Kuis Dinamis
+            </h2>
+            
+            <!-- FITUR BARU: TOMBOL SALIN SOAL & KUNCI -->
+            <div class="flex gap-2">
+              <button onclick="copyQuizOnly()" class="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-copy text-blue-500"></i> Salin Soal (Tanpa Kunci)
+              </button>
+              <button onclick="copyAnswerKeys()" class="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-key text-amber-500"></i> Salin Kunci Jawaban
+              </button>
+            </div>
+          </div>
+
+          <div id="kuis-container" class="text-xs text-slate-700 dark:text-slate-300 space-y-4">
             <p class="text-slate-400 italic">Belum ada kuis yang digenerate.</p>
           </div>
         </div>
 
-        <hr class="border-slate-200">
+        <hr class="border-slate-200 dark:border-slate-700">
 
         <!-- Rekap Nilai Interactive Table -->
         <div>
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
-              <i class="fa-solid fa-table text-emerald-600"></i> Rekap Nilai Siswa Interaktif
+            <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <i class="fa-solid fa-table text-emerald-600 dark:text-emerald-400"></i> Rekap Nilai Siswa Interaktif
             </h2>
             <div class="flex gap-2">
-              <button onclick="addRowSiswa()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+              <button onclick="addRowSiswa()" class="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
                 + Tambah Siswa
               </button>
               <button onclick="exportNilaiToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
@@ -436,25 +573,25 @@
           </div>
 
           <div class="overflow-x-auto">
-            <table id="table-rekap" class="w-full text-left border-collapse border border-slate-200 rounded-lg">
-              <thead class="bg-slate-100 text-slate-700 text-[11px] uppercase">
+            <table id="table-rekap" class="w-full text-left border-collapse border border-slate-200 dark:border-slate-700 rounded-lg">
+              <thead class="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] uppercase">
                 <tr>
-                  <th class="p-3 border">Nama Siswa</th>
-                  <th class="p-3 border w-24">Formatif 1</th>
-                  <th class="p-3 border w-24">Formatif 2</th>
-                  <th class="p-3 border w-24">Sumatif (PAS)</th>
-                  <th class="p-3 border w-28 bg-emerald-50 text-emerald-800">Rata-Rata</th>
-                  <th class="p-3 border w-16 text-center">Aksi</th>
+                  <th class="p-3 border dark:border-slate-600">Nama Siswa</th>
+                  <th class="p-3 border dark:border-slate-600 w-24">Formatif 1</th>
+                  <th class="p-3 border dark:border-slate-600 w-24">Formatif 2</th>
+                  <th class="p-3 border dark:border-slate-600 w-24">Sumatif (PAS)</th>
+                  <th class="p-3 border dark:border-slate-600 w-28 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300">Rata-Rata</th>
+                  <th class="p-3 border dark:border-slate-600 w-16 text-center">Aksi</th>
                 </tr>
               </thead>
-              <tbody id="rekap-body" class="text-xs divide-y divide-slate-200">
+              <tbody id="rekap-body" class="text-xs divide-y divide-slate-200 dark:divide-slate-700">
                 <tr>
-                  <td class="p-2 border"><input type="text" value="Ahmad Fauzi" class="w-full bg-transparent p-1 focus:bg-white focus:outline-none"></td>
-                  <td class="p-2 border"><input type="number" value="85" oninput="calculateAverages()" class="val-f1 w-full bg-transparent p-1 text-center focus:bg-white focus:outline-none"></td>
-                  <td class="p-2 border"><input type="number" value="80" oninput="calculateAverages()" class="val-f2 w-full bg-transparent p-1 text-center focus:bg-white focus:outline-none"></td>
-                  <td class="p-2 border"><input type="number" value="90" oninput="calculateAverages()" class="val-sum w-full bg-transparent p-1 text-center focus:bg-white focus:outline-none"></td>
-                  <td class="p-2 border bg-emerald-50/50 font-bold text-center text-emerald-700 val-avg">85.0</td>
-                  <td class="p-2 border text-center">
+                  <td class="p-2 border dark:border-slate-700"><input type="text" value="Ahmad Fauzi" class="w-full bg-transparent p-1 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
+                  <td class="p-2 border dark:border-slate-700"><input type="number" value="85" oninput="calculateAverages()" class="val-f1 w-full bg-transparent p-1 text-center focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
+                  <td class="p-2 border dark:border-slate-700"><input type="number" value="80" oninput="calculateAverages()" class="val-f2 w-full bg-transparent p-1 text-center focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
+                  <td class="p-2 border dark:border-slate-700"><input type="number" value="90" oninput="calculateAverages()" class="val-sum w-full bg-transparent p-1 text-center focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
+                  <td class="p-2 border dark:border-slate-700 bg-emerald-50/50 dark:bg-emerald-900/20 font-bold text-center text-emerald-700 dark:text-emerald-400 val-avg">85.0</td>
+                  <td class="p-2 border dark:border-slate-700 text-center">
                     <button onclick="deleteRow(this)" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
                   </td>
                 </tr>
@@ -476,6 +613,7 @@
     let selectedModel = localStorage.getItem('gemini_model') || "gemini-1.5-flash";
     let activeFirebaseConfig = localStorage.getItem('firebase_config') ? JSON.parse(localStorage.getItem('firebase_config')) : null;
     let db = null;
+    let rawGeneratedQuiz = [];
 
     if (window.pdfjsLib) {
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
@@ -483,6 +621,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       initConfigurations();
+      initTheme();
     });
 
     function initConfigurations() {
@@ -513,6 +652,29 @@
         } catch (e) {
           console.error("Firebase init error:", e);
         }
+      }
+    }
+
+    // TOGGLE DARK MODE
+    function initTheme() {
+      if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+        document.getElementById('theme-icon').className = 'fa-solid fa-sun text-yellow-400';
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.getElementById('theme-icon').className = 'fa-solid fa-moon';
+      }
+    }
+
+    function toggleDarkMode() {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+        document.getElementById('theme-icon').className = 'fa-solid fa-moon';
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+        document.getElementById('theme-icon').className = 'fa-solid fa-sun text-yellow-400';
       }
     }
 
@@ -575,12 +737,12 @@
       }
       try {
         const payload = {
+          sekolah: document.getElementById('input-nama-sekolah').value,
+          guru: document.getElementById('input-nama-guru').value,
           mapel: document.getElementById('input-mapel').value,
           fase: document.getElementById('input-fase').value,
           semester: document.getElementById('input-semester').value,
           model: document.getElementById('input-model').value,
-          jumlahSoal: document.getElementById('input-jumlah-soal').value,
-          bentukSoal: document.getElementById('input-bentuk-soal').value,
           materi: document.getElementById('input-materi').value,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
@@ -642,7 +804,7 @@
     }
 
     /* ==========================================================================
-       3. GEMINI AI GENERATION API CALL (WITH DYNAMIC QUIZ & MULTI-MODEL SUPPORT)
+       3. GEMINI AI GENERATION API CALL (FULL PARAMETERS)
        ========================================================================== */
     async function generateAllWithGemini() {
       const keyInput = document.getElementById('input-gemini-key').value.trim();
@@ -660,15 +822,18 @@
 
       selectedModel = document.getElementById('select-gemini-model').value;
 
+      const sekolah = document.getElementById('input-nama-sekolah').value;
+      const guru = document.getElementById('input-nama-guru').value;
       const mapel = document.getElementById('input-mapel').value;
       const fase = document.getElementById('input-fase').value;
       const semester = document.getElementById('input-semester').value;
       const model = document.getElementById('input-model').value;
       const materi = document.getElementById('input-materi').value;
       
-      // Ambil nilai Kuis Dinamis
       const jumlahSoal = document.getElementById('input-jumlah-soal')?.value || 5;
       const bentukSoal = document.getElementById('input-bentuk-soal')?.value || "Campuran";
+      const isDiferensiasi = document.getElementById('input-diferensiasi')?.checked ? "Ya" : "Tidak";
+      const instruksiKhusus = document.getElementById('input-instruksi-khusus')?.value || "";
 
       if (!materi.trim()) {
         showToast("Harap masukkan ringkasan/materi pelajaran!", "error");
@@ -686,12 +851,16 @@
 
       const promptSystem = `Anda adalah pakar pengembang kurikulum Merdeka di Indonesia.
 Berdasarkan parameter berikut:
+- Satuan Pendidikan: ${sekolah}
+- Guru Pengampu: ${guru}
 - Mata Pelajaran: ${mapel}
 - Fase/Kelas: ${fase}
 - Semester: ${semester}
 - Model Pembelajaran: ${model}
 - Ringkasan Materi: ${materi}
-- Pengaturan Kuis: Buatkan tepat ${jumlahSoal} buah soal kuis dengan bentuk/tipe: ${bentukSoal}.
+- Pengaturan Kuis: Tepat ${jumlahSoal} soal tipe ${bentukSoal}.
+- Sertakan Rubrik Diferensiasi/Inklusi: ${isDiferensiasi}
+- Catatan Khusus Tambahan: ${instruksiKhusus}
 
 Buatkan perangkat pembelajaran secara terstruktur, akurat, dan sangat lengkap. Kembalikan HANYA format JSON murni tanpa karakter atau pembungkus markdown apapun.
 
@@ -704,7 +873,7 @@ Skema JSON wajib:
   "promes": [
     {"no": 1, "materi": "Materi Pokok 1", "jp": 4, "b1": "4", "b2": "", "b3": "", "b4": ""}
   ],
-  "modul": "Lengkap dengan Identitas, Profil Pelajar Pancasila, Pemahaman Bermakna, Pertanyaan Pemantik, Kegiatan Pembelajaran (Pendahuluan, Inti ${model}, Penutup), Asesmen, & Refleksi.",
+  "modul": "Lengkap dengan Identitas, Profil Pelajar Pancasila, Pemahaman Bermakna, Pertanyaan Pemantik, Kegiatan Pembelajaran (Pendahuluan, Inti ${model}, Penutup), Asesmen Diferensiasi, & Refleksi.",
   "lkpd": "Lembar Kerja Peserta Didik (Instruksi, Tugas Kelompok/Individu, & Rubrik Penting)",
   "media": "Rekomendasi Media & Alat Pembelajaran Digital/Konvensional",
   "kuis": [
@@ -770,15 +939,17 @@ Skema JSON wajib:
     }
 
     function renderGeneratedData(data) {
+      updateKopHeaders();
+
       if (data.cp) document.getElementById('output-cp').innerText = data.cp;
       if (data.atp && Array.isArray(data.atp)) {
         const atpBody = document.getElementById('table-atp-body');
         atpBody.innerHTML = data.atp.map(item => `
           <tr>
-            <td class="p-3 border-b font-semibold text-blue-600">${item.kode || '-'}</td>
-            <td class="p-3 border-b">${item.tp || '-'}</td>
-            <td class="p-3 border-b">${item.materi || '-'}</td>
-            <td class="p-3 border-b">${item.jp || '-'} JP</td>
+            <td class="p-3 border-b dark:border-slate-700 font-semibold text-blue-600 dark:text-blue-400">${item.kode || '-'}</td>
+            <td class="p-3 border-b dark:border-slate-700">${item.tp || '-'}</td>
+            <td class="p-3 border-b dark:border-slate-700">${item.materi || '-'}</td>
+            <td class="p-3 border-b dark:border-slate-700">${item.jp || '-'} JP</td>
           </tr>
         `).join('');
       }
@@ -787,13 +958,13 @@ Skema JSON wajib:
         const promesBody = document.getElementById('promes-table-body');
         promesBody.innerHTML = data.promes.map(p => `
           <tr>
-            <td class="p-3 border text-center">${p.no}</td>
-            <td class="p-3 border">${p.materi}</td>
-            <td class="p-3 border text-center">${p.jp}</td>
-            <td class="p-3 border text-center font-bold text-blue-600">${p.b1 || ''}</td>
-            <td class="p-3 border text-center font-bold text-blue-600">${p.b2 || ''}</td>
-            <td class="p-3 border text-center font-bold text-blue-600">${p.b3 || ''}</td>
-            <td class="p-3 border text-center font-bold text-blue-600">${p.b4 || ''}</td>
+            <td class="p-3 border dark:border-slate-700 text-center">${p.no}</td>
+            <td class="p-3 border dark:border-slate-700">${p.materi}</td>
+            <td class="p-3 border dark:border-slate-700 text-center">${p.jp}</td>
+            <td class="p-3 border dark:border-slate-700 text-center font-bold text-blue-600 dark:text-blue-400">${p.b1 || ''}</td>
+            <td class="p-3 border dark:border-slate-700 text-center font-bold text-blue-600 dark:text-blue-400">${p.b2 || ''}</td>
+            <td class="p-3 border dark:border-slate-700 text-center font-bold text-blue-600 dark:text-blue-400">${p.b3 || ''}</td>
+            <td class="p-3 border dark:border-slate-700 text-center font-bold text-blue-600 dark:text-blue-400">${p.b4 || ''}</td>
           </tr>
         `).join('');
       }
@@ -811,24 +982,25 @@ Skema JSON wajib:
 
       // RENDER KUIS DINAMIS
       if (data.kuis && Array.isArray(data.kuis)) {
+        rawGeneratedQuiz = data.kuis;
         const kuisCont = document.getElementById('kuis-container');
         kuisCont.innerHTML = data.kuis.map(q => `
-          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+          <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
             <div class="flex justify-between items-center">
-              <span class="font-bold text-slate-800 text-xs">Soal No. ${q.no}</span>
-              <span class="text-[10px] bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full font-semibold uppercase">${q.tipe || 'Kuis'}</span>
+              <span class="font-bold text-slate-800 dark:text-white text-xs">Soal No. ${q.no}</span>
+              <span class="text-[10px] bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 px-2.5 py-0.5 rounded-full font-semibold uppercase">${q.tipe || 'Kuis'}</span>
             </div>
-            <p class="text-xs font-medium text-slate-700 leading-relaxed">${q.soal}</p>
+            <p class="text-xs font-medium text-slate-700 dark:text-slate-300 leading-relaxed">${q.soal}</p>
             
             ${q.opsi && Array.isArray(q.opsi) && q.opsi.length > 0 ? `
-              <ul class="list-disc list-inside ml-2 text-xs text-slate-600 space-y-1 my-2">
+              <ul class="list-disc list-inside ml-2 text-xs text-slate-600 dark:text-slate-400 space-y-1 my-2">
                 ${q.opsi.map(o => `<li>${o}</li>`).join('')}
               </ul>
             ` : ''}
 
-            <div class="bg-emerald-50/70 p-2.5 rounded-lg border border-emerald-200/60 mt-2">
-              <p class="text-[11px] text-emerald-800 font-medium">
-                <i class="fa-solid fa-circle-check text-emerald-600"></i> <span class="font-bold">Kunci / Rubrik Jawaban:</span> ${q.kunci}
+            <div class="bg-emerald-50/70 dark:bg-emerald-900/20 p-2.5 rounded-lg border border-emerald-200/60 dark:border-emerald-800/40 mt-2">
+              <p class="text-[11px] text-emerald-800 dark:text-emerald-300 font-medium">
+                <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400"></i> <span class="font-bold">Kunci / Rubrik Jawaban:</span> ${q.kunci}
               </p>
             </div>
           </div>
@@ -836,6 +1008,99 @@ Skema JSON wajib:
       }
     }
 
+    function updateKopHeaders() {
+      const sekolah = document.getElementById('input-nama-sekolah').value;
+      const guru = document.getElementById('input-nama-guru').value;
+      const nipGuru = document.getElementById('input-nip-guru').value;
+      const kepsek = document.getElementById('input-nama-kepsek').value;
+      const nipKepsek = document.getElementById('input-nip-kepsek').value;
+      const kota = document.getElementById('input-kota-penetapan').value;
+      const tgl = document.getElementById('input-tanggal-penetapan').value;
+
+      document.getElementById('kop-sekolah-1').innerText = sekolah;
+      document.getElementById('ttd-guru-1').innerText = guru;
+      document.getElementById('nip-guru-1').innerText = "NIP. " + nipGuru;
+      document.getElementById('ttd-kepsek-1').innerText = kepsek;
+      document.getElementById('nip-kepsek-1').innerText = "NIP. " + nipKepsek;
+      document.getElementById('ttd-kota-tgl-1').innerText = `${kota}, ${tgl}`;
+    }
+
+    /* ==========================================================================
+       4. FITUR EKSPOR WORD (.DOCX) & SALIN SOAL
+       ========================================================================== */
+    function exportToWord(elementId, filename) {
+      const content = document.getElementById(elementId).outerHTML;
+      const sekolah = document.getElementById('input-nama-sekolah').value;
+      
+      const htmlString = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${filename}</title>
+          <style>
+            body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.5; }
+            h1, h2, h3 { text-align: center; }
+            table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+            th, td { border: 1px solid #000; padding: 6px; text-align: left; }
+            th { background-color: #f2f2f2; }
+            .no-print { display: none; }
+          </style>
+        </head>
+        <body>
+          <h2 style="text-align:center;">${sekolah.toUpperCase()}</h2>
+          ${content}
+        </body>
+        </html>
+      `;
+
+      if (window.htmlDocx) {
+        const converted = htmlDocx.asBlob(htmlString);
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(converted);
+        a.download = `${filename}.docx`;
+        a.click();
+        showToast("Berhasil mengekspor dokumen Word!", "success");
+      } else {
+        showToast("Library html-docx sedang dimuat. Coba lagi.", "error");
+      }
+    }
+
+    function copyQuizOnly() {
+      if (!rawGeneratedQuiz.length) {
+        showToast("Belum ada soal kuis yang digenerate.", "error");
+        return;
+      }
+      let text = "SOAL KUIS / EVALUASI PEMBELAJARAN\n\n";
+      rawGeneratedQuiz.forEach(q => {
+        text += `${q.no}. [${q.tipe || 'Soal'}] ${q.soal}\n`;
+        if (q.opsi && q.opsi.length) {
+          q.opsi.forEach(o => text += `   ${o}\n`);
+        }
+        text += "\n";
+      });
+
+      navigator.clipboard.writeText(text);
+      showToast("Berhasil menyalin soal kuis tanpa kunci!", "success");
+    }
+
+    function copyAnswerKeys() {
+      if (!rawGeneratedQuiz.length) {
+        showToast("Belum ada kunci jawaban yang digenerate.", "error");
+        return;
+      }
+      let text = "KUNCI JAWABAN & PEDOMAN PENSKORAN KUIS\n\n";
+      rawGeneratedQuiz.forEach(q => {
+        text += `Soal No. ${q.no}: ${q.kunci}\n`;
+      });
+
+      navigator.clipboard.writeText(text);
+      showToast("Berhasil menyalin kunci jawaban!", "success");
+    }
+
+    /* ==========================================================================
+       5. UTILITAS KETIK & TABEL REKAP NILAI
+       ========================================================================== */
     function calculateAverages() {
       const rows = document.querySelectorAll('#rekap-body tr');
       rows.forEach(row => {
@@ -855,12 +1120,12 @@ Skema JSON wajib:
       const tbody = document.getElementById('rekap-body');
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td class="p-2 border"><input type="text" value="Siswa Baru" class="w-full bg-transparent p-1 focus:bg-white focus:outline-none"></td>
-        <td class="p-2 border"><input type="number" value="0" oninput="calculateAverages()" class="val-f1 w-full bg-transparent p-1 text-center focus:bg-white focus:outline-none"></td>
-        <td class="p-2 border"><input type="number" value="0" oninput="calculateAverages()" class="val-f2 w-full bg-transparent p-1 text-center focus:bg-white focus:outline-none"></td>
-        <td class="p-2 border"><input type="number" value="0" oninput="calculateAverages()" class="val-sum w-full bg-transparent p-1 text-center focus:bg-white focus:outline-none"></td>
-        <td class="p-2 border bg-emerald-50/50 font-bold text-center text-emerald-700 val-avg">0.0</td>
-        <td class="p-2 border text-center">
+        <td class="p-2 border dark:border-slate-700"><input type="text" value="Siswa Baru" class="w-full bg-transparent p-1 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
+        <td class="p-2 border dark:border-slate-700"><input type="number" value="0" oninput="calculateAverages()" class="val-f1 w-full bg-transparent p-1 text-center focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
+        <td class="p-2 border dark:border-slate-700"><input type="number" value="0" oninput="calculateAverages()" class="val-f2 w-full bg-transparent p-1 text-center focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
+        <td class="p-2 border dark:border-slate-700"><input type="number" value="0" oninput="calculateAverages()" class="val-sum w-full bg-transparent p-1 text-center focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
+        <td class="p-2 border dark:border-slate-700 bg-emerald-50/50 dark:bg-emerald-900/20 font-bold text-center text-emerald-700 dark:text-emerald-400 val-avg">0.0</td>
+        <td class="p-2 border dark:border-slate-700 text-center">
           <button onclick="deleteRow(this)" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
         </td>
       `;
@@ -882,14 +1147,14 @@ Skema JSON wajib:
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.tab-button').forEach(el => {
         el.classList.remove('tab-active');
-        el.classList.add('text-slate-600');
+        el.classList.add('text-slate-600', 'dark:text-slate-300');
       });
 
       document.getElementById(tabId).classList.remove('hidden');
       const activeBtn = document.getElementById('tab-' + tabId);
       if (activeBtn) {
         activeBtn.classList.add('tab-active');
-        activeBtn.classList.remove('text-slate-600');
+        activeBtn.classList.remove('text-slate-600', 'dark:text-slate-300');
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
