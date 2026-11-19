@@ -7,7 +7,7 @@
   <!-- Favicon Tab Browser (File Lokal) -->
   <link rel="icon" type="image/jpeg" href="logo.jpg">
 
-  <!-- TEMPEL KODE OPEN GRAPH DI SINI -->
+  <!-- Open Graph Meta Tags untuk WhatsApp & Media Sosial -->
   <meta property="og:title" content="Merdeka Pro | Generator Perangkat Kurikulum Merdeka">
   <meta property="og:description" content="Otomatisasi Perangkat Ajar Kurikulum Merdeka Terintegrasi & Multi-Model AI">
   <meta property="og:image" content="https://mlisin06.github.io/perangkat-pembelajaran-generate/logo.jpg">
@@ -207,7 +207,7 @@
         <i class="fa-solid fa-flask"></i> 5. LKPD, Media & Jurnal
       </button>
       <button onclick="switchTab('kuisrekap-tab')" id="tab-kuisrekap-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
-        <i class="fa-solid fa-chart-simple"></i> 6. Kuis & Rekap Nilai
+        <i class="fa-solid fa-chart-simple"></i> 6. Kuis, Kisi-Kisi & Rekap Nilai
       </button>
     </div>
   </nav>
@@ -613,10 +613,50 @@
       </div>
     </section>
 
-    <!-- TAB 6: KUIS, KARTU SOAL & REKAP NILAI INTERAKTIF -->
+    <!-- TAB 6: KISI-KISI, KUIS, KARTU SOAL & REKAP NILAI INTERAKTIF -->
     <section id="kuisrekap-tab" class="tab-content hidden space-y-6">
-      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-6">
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-8">
         
+        <!-- KISI-KISI PENULISAN SOAL -->
+        <div id="kisi-kisi-area" class="space-y-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 no-print">
+            <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <i class="fa-solid fa-border-all text-indigo-600 dark:text-indigo-400"></i> Kisi-Kisi Penulisan Soal
+            </h2>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="downloadPDFDirect('kisi-kisi-area', 'Kisi_Kisi_Soal_Kurikulum_Merdeka')" class="text-xs bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700 hover:bg-red-100 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-file-pdf"></i> Unduh Kisi-Kisi PDF
+              </button>
+              <button onclick="exportToWord('kisi-kisi-area', 'Kisi_Kisi_Soal_Kurikulum_Merdeka')" class="text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-file-word text-blue-500"></i> Ekspor Kisi-Kisi Word (.docx)
+              </button>
+              <button onclick="window.print()" class="text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5">
+                <i class="fa-solid fa-print"></i> Cetak
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table id="table-kisi-kisi" class="w-full text-left border-collapse border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+              <thead class="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] uppercase">
+                <tr>
+                  <th class="p-3 border dark:border-slate-600 w-14 text-center">No</th>
+                  <th class="p-3 border dark:border-slate-600">Materi / TP</th>
+                  <th class="p-3 border dark:border-slate-600">Indikator Soal</th>
+                  <th class="p-3 border dark:border-slate-600 text-center">Level Kognitif</th>
+                  <th class="p-3 border dark:border-slate-600 text-center">Bentuk Soal</th>
+                  <th class="p-3 border dark:border-slate-600 w-16 text-center">Skor</th>
+                </tr>
+              </thead>
+              <tbody id="kisi-kisi-body" class="text-xs divide-y divide-slate-200 dark:divide-slate-700">
+                <tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Belum ada kisi-kisi yang digenerate.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <hr class="border-slate-200 dark:border-slate-700">
+
         <!-- Kuis Bank Soal & Kartu Soal -->
         <div>
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3 no-print">
@@ -709,6 +749,7 @@
     let activeFirebaseConfig = localStorage.getItem('firebase_config') ? JSON.parse(localStorage.getItem('firebase_config')) : null;
     let db = null;
     let rawGeneratedQuiz = [];
+    let rawGeneratedKisiKisi = [];
     let fullGeneratedBackup = null;
 
     if (window.pdfjsLib) {
@@ -720,9 +761,7 @@
       initTheme();
     });
 
-    // Membuka modal passcode saat tombol Kunci API diklik
     function requestOpenConfigPanel() {
-      // Jika sudah pernah terbuka/terverifikasi di sesi ini, langsung buka panelnya
       if (sessionStorage.getItem('api_unlocked') === 'true') {
         toggleConfigPanel();
       } else {
@@ -928,7 +967,7 @@
     }
 
     /* ==========================================================================
-       3. GEMINI AI GENERATION API CALL (WITH PROTA & JURNAL)
+       3. GEMINI AI GENERATION API CALL (WITH PROTA, JURNAL & KISI-KISI)
        ========================================================================== */
     async function generateAllWithGemini() {
       const keyInput = document.getElementById('input-gemini-key').value.trim();
@@ -985,7 +1024,7 @@ Berdasarkan parameter berikut:
 - Sertakan Rubrik Diferensiasi/Inklusi: ${isDiferensiasi}
 - Catatan Khusus Tambahan: ${instruksiKhusus}
 
-Buatkan perangkat pembelajaran secara terstruktur, akurat, dan sangat lengkap. Kembalikan HANYA format JSON murni tanpa karakter atau pembungkus markdown apapun.
+Buatkan perangkat pembelajaran secara terstruktur, akurat, dan sangat lengkap, termasuk kisi-kisi soal yang sesuai dengan setiap butir soal pada kuis. Kembalikan HANYA format JSON murni tanpa karakter atau pembungkus markdown apapun.
 
 Skema JSON wajib:
 {
@@ -1003,6 +1042,16 @@ Skema JSON wajib:
   "lkpd": "Lembar Kerja Peserta Didik (Instruksi, Tugas Kelompok/Individu, & Rubrik Penting)",
   "media": "Rekomendasi Media & Alat Pembelajaran Digital/Konvensional",
   "jurnal": "Rancangan Jurnal Agenda Harian Mengajar (Hari/Tgl, Jam ke-, TP, Aktivitas, & Catatan Evaluasi)",
+  "kisi_kisi": [
+    {
+      "no": 1,
+      "materi_tp": "Materi Pokok / Kode TP",
+      "indikator": "Rumusan indikator soal yang jelas dan terukur",
+      "level": "L1 / L2 / L3 (HOTS)",
+      "bentuk": "Pilihan Ganda / Essay Pendek / Uraian",
+      "skor": 20
+    }
+  ],
   "kuis": [
     {
       "no": 1, 
@@ -1052,7 +1101,7 @@ Skema JSON wajib:
         fullGeneratedBackup = parsedData;
         renderGeneratedData(parsedData);
         logConsole.innerText = `Sukses digenerate dengan model: ${selectedModel}`;
-        showToast("Perangkat pembelajaran berhasil digenerate!", "success");
+        showToast("Perangkat pembelajaran & kisi-kisi berhasil digenerate!", "success");
         switchTab('cpatp-tab');
 
       } catch (err) {
@@ -1121,6 +1170,43 @@ Skema JSON wajib:
       }
       if (data.jurnal) {
         document.getElementById('jurnal-container').innerHTML = `<div class="whitespace-pre-line">${data.jurnal}</div>`;
+      }
+
+      if (data.kisi_kisi && Array.isArray(data.kisi_kisi)) {
+        rawGeneratedKisiKisi = data.kisi_kisi;
+        const kisiBody = document.getElementById('kisi-kisi-body');
+        kisiBody.innerHTML = data.kisi_kisi.map(k => `
+          <tr>
+            <td class="p-3 border dark:border-slate-700 text-center font-bold">${k.no}</td>
+            <td class="p-3 border dark:border-slate-700 font-medium">${k.materi_tp || '-'}</td>
+            <td class="p-3 border dark:border-slate-700">${k.indikator || '-'}</td>
+            <td class="p-3 border dark:border-slate-700 text-center">
+              <span class="text-[10px] bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 px-2 py-0.5 rounded font-semibold">${k.level || '-'}</span>
+            </td>
+            <td class="p-3 border dark:border-slate-700 text-center">${k.bentuk || '-'}</td>
+            <td class="p-3 border dark:border-slate-700 text-center font-bold text-emerald-600 dark:text-emerald-400">${k.skor ?? '-'}</td>
+          </tr>
+        `).join('');
+      } else if (data.kuis && Array.isArray(data.kuis)) {
+        rawGeneratedKisiKisi = data.kuis.map(q => ({
+          no: q.no,
+          materi_tp: document.getElementById('input-mapel').value,
+          indikator: `Peserta didik dapat menjawab pertanyaan terkait: ${q.soal}`,
+          level: 'L2',
+          bentuk: q.tipe || 'Kuis',
+          skor: Math.round(100 / data.kuis.length)
+        }));
+        const kisiBody = document.getElementById('kisi-kisi-body');
+        kisiBody.innerHTML = rawGeneratedKisiKisi.map(k => `
+          <tr>
+            <td class="p-3 border dark:border-slate-700 text-center font-bold">${k.no}</td>
+            <td class="p-3 border dark:border-slate-700 font-medium">${k.materi_tp}</td>
+            <td class="p-3 border dark:border-slate-700">${k.indikator}</td>
+            <td class="p-3 border dark:border-slate-700 text-center">${k.level}</td>
+            <td class="p-3 border dark:border-slate-700 text-center">${k.bentuk}</td>
+            <td class="p-3 border dark:border-slate-700 text-center font-bold text-emerald-600 dark:text-emerald-400">${k.skor}</td>
+          </tr>
+        `).join('');
       }
 
       if (data.kuis && Array.isArray(data.kuis)) {
