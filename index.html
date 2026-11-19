@@ -201,7 +201,7 @@
         <i class="fa-solid fa-calendar-days"></i> 3. Prota & Promes
       </button>
       <button onclick="switchTab('modul-tab')" id="tab-modul-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
-        <i class="fa-solid fa-book-open"></i> 4. Modul Ajar / RPP
+        <i class="fa-solid fa-book-open"></i> 4. Modul Ajar (Alur Rinci)
       </button>
       <button onclick="switchTab('lkpd-tab')" id="tab-lkpd-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
         <i class="fa-solid fa-flask"></i> 5. LKPD, Media & Jurnal
@@ -296,7 +296,7 @@
           </div>
           <div class="md:col-span-2">
             <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tanggal Penetapan Dokumen</label>
-            <input type="text" id="input-tanggal-penetapan" value="16 November 2026" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <input type="text" id="input-tanggal-penetapan" value="19 November 2026" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
           </div>
         </div>
       </div>
@@ -472,7 +472,7 @@
             <p id="nip-kepsek-1">NIP. -</p>
           </div>
           <div>
-            <p id="ttd-kota-tgl-1">Limbangan, 16 November 2026</p>
+            <p id="ttd-kota-tgl-1">Limbangan, 19 November 2026</p>
             <p class="font-bold">Guru Mata Pelajaran</p>
             <br><br><br>
             <p id="ttd-guru-1" class="font-bold underline">_______________________</p>
@@ -558,7 +558,7 @@
       <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-4">
         <div class="flex flex-wrap justify-between items-center gap-4 no-print">
           <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
-            <i class="fa-solid fa-book text-blue-600 dark:text-blue-400"></i> Draf Modul Ajar (RPP Plus)
+            <i class="fa-solid fa-book text-blue-600 dark:text-blue-400"></i> Draf Modul Ajar (Alur Kegiatan Pembelajaran Rinci)
           </h2>
           <div class="flex gap-2">
             <button onclick="downloadPDFDirect('modul-tab', 'Modul_Ajar_Kurikulum_Merdeka')" class="text-xs bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700 hover:bg-red-100 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
@@ -967,7 +967,7 @@
     }
 
     /* ==========================================================================
-       3. GEMINI AI GENERATION API CALL (WITH PROTA, JURNAL & KISI-KISI)
+       3. GEMINI AI GENERATION API CALL (WITH PROTA, JURNAL, ALUR RINCI & KISI-KISI)
        ========================================================================== */
     async function generateAllWithGemini() {
       const keyInput = document.getElementById('input-gemini-key').value.trim();
@@ -1024,7 +1024,10 @@ Berdasarkan parameter berikut:
 - Sertakan Rubrik Diferensiasi/Inklusi: ${isDiferensiasi}
 - Catatan Khusus Tambahan: ${instruksiKhusus}
 
-Buatkan perangkat pembelajaran secara terstruktur, akurat, dan sangat lengkap, termasuk kisi-kisi soal yang sesuai dengan setiap butir soal pada kuis. Kembalikan HANYA format JSON murni tanpa karakter atau pembungkus markdown apapun.
+Buatkan perangkat pembelajaran secara terstruktur, akurat, dan sangat lengkap. 
+KHUSUS UNTUK MODUL AJAR: Berikan alur kegiatan pembelajaran secara sangat rinci meliputi Kegiatan Pendahuluan (dengan estimasi menit), Kegiatan Inti yang diurai berdasarkan langkah-langkah/sintaks model ${model} secara spesifik, dan Kegiatan Penutup.
+
+Kembalikan HANYA format JSON murni tanpa karakter atau pembungkus markdown apapun.
 
 Skema JSON wajib:
 {
@@ -1038,7 +1041,7 @@ Skema JSON wajib:
   "promes": [
     {"no": 1, "materi": "Materi Pokok 1", "jp": 4, "b1": "4", "b2": "", "b3": "", "b4": ""}
   ],
-  "modul": "Lengkap dengan Identitas, Profil Pelajar Pancasila, Pemahaman Bermakna, Pertanyaan Pemantik, Kegiatan Pembelajaran (Pendahuluan, Inti ${model}, Penutup), Asesmen Diferensiasi, & Refleksi.",
+  "modul": "Lengkap dengan Identitas, Profil Pelajar Pancasila, Pemahaman Bermakna, Pertanyaan Pemantik, ALUR KEGIATAN PEMBELAJARAN RINCI (Pendahuluan, Inti sesuai Sintaks ${model}, Penutup), Asesmen Diferensiasi, & Refleksi.",
   "lkpd": "Lembar Kerja Peserta Didik (Instruksi, Tugas Kelompok/Individu, & Rubrik Penting)",
   "media": "Rekomendasi Media & Alat Pembelajaran Digital/Konvensional",
   "jurnal": "Rancangan Jurnal Agenda Harian Mengajar (Hari/Tgl, Jam ke-, TP, Aktivitas, & Catatan Evaluasi)",
