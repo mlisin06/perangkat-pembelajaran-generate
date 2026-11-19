@@ -46,6 +46,56 @@
     .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     .logo-gradient-text { background: linear-gradient(135deg, #60a5fa, #ffffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    .doc-formatted h3 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-top: 1rem;
+      margin-bottom: 0.35rem;
+      padding-bottom: 0.2rem;
+      border-bottom: 1px solid #cbd5e1;
+      color: #0f172a;
+    }
+    .dark .doc-formatted h3 {
+      color: #f8fafc;
+      border-bottom-color: #334155;
+    }
+    .doc-formatted h4 {
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-top: 0.75rem;
+      margin-bottom: 0.25rem;
+      color: #1e3a8a;
+    }
+    .dark .doc-formatted h4 {
+      color: #93c5fd;
+    }
+    .doc-formatted p {
+      margin-bottom: 0.5rem;
+      line-height: 1.6;
+      text-align: justify;
+    }
+    .doc-formatted ul, .doc-formatted ol {
+      margin-left: 1.35rem;
+      margin-bottom: 0.65rem;
+      line-height: 1.6;
+    }
+    .doc-formatted ul { list-style-type: disc; }
+    .doc-formatted ol { list-style-type: decimal; }
+    .doc-formatted li { margin-bottom: 0.25rem; }
+
+    .doc-kop {
+      display: none;
+      text-align: center;
+      border-bottom: 2px solid #000;
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+    }
+    .doc-ttd {
+      display: none;
+      margin-top: 24px;
+      font-size: 11px;
+    }
     
     @media print {
       header, nav, #config-panel, button, .no-print, .branding-section { display: none !important; }
@@ -54,6 +104,8 @@
       @page { size: A4; margin: 2cm 2cm 2cm 2.5cm; }
       .print-header { display: block !important; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
       .print-footer { display: block !important; margin-top: 30px; }
+      .doc-kop, .doc-ttd { display: block !important; }
+      .doc-formatted h3, .doc-formatted h4 { color: black !important; border-color: #000 !important; }
     }
     .print-header, .print-footer { display: none; }
   </style>
@@ -417,7 +469,7 @@
           <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
             <i class="fa-solid fa-network-wired text-blue-600 dark:text-blue-400"></i> Capaian Pembelajaran (CP) & Tujuan Pembelajaran (TP)
           </h2>
-          <div class="flex gap-2">
+          <div class="flex flex-wrap gap-2">
             <button onclick="downloadPDFDirect('cpatp-tab', 'CP_ATP_Kurikulum_Merdeka')" class="text-xs bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700 hover:bg-red-100 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
               <i class="fa-solid fa-file-pdf"></i> Unduh PDF
             </button>
@@ -487,7 +539,7 @@
           <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
             <i class="fa-solid fa-calendar-check text-blue-600 dark:text-blue-400"></i> Program Tahunan (Prota) & Program Semester (Promes)
           </h2>
-          <div class="flex gap-2">
+          <div class="flex flex-wrap gap-2">
             <button onclick="downloadPDFDirect('protapromes-tab', 'Prota_Promes_Kurikulum_Merdeka')" class="text-xs bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700 hover:bg-red-100 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
               <i class="fa-solid fa-file-pdf"></i> Unduh PDF
             </button>
@@ -553,27 +605,29 @@
 
     <!-- TAB 4: MODUL AJAR / RPP -->
     <section id="modul-tab" class="tab-content hidden space-y-6">
-      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+      <div id="modul-print-area" class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-4">
         <div class="flex flex-wrap justify-between items-center gap-4 no-print">
           <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
             <i class="fa-solid fa-book text-blue-600 dark:text-blue-400"></i> Draf Modul Ajar (Alur Kegiatan Pembelajaran Rinci)
           </h2>
-          <div class="flex gap-2">
-            <button onclick="downloadPDFDirect('modul-tab', 'Modul_Ajar_Kurikulum_Merdeka')" class="text-xs bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700 hover:bg-red-100 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
+          <div class="flex flex-wrap gap-2">
+            <button onclick="downloadPDFDirect('modul-print-area', 'Modul_Ajar_Kurikulum_Merdeka')" class="text-xs bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700 hover:bg-red-100 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
               <i class="fa-solid fa-file-pdf"></i> Unduh PDF
             </button>
-            <button onclick="exportToWord('modul-tab', 'Modul_Ajar_Kurikulum_Merdeka')" class="text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
+            <button onclick="exportToWord('modul-print-area', 'Modul_Ajar_Kurikulum_Merdeka')" class="text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
               <i class="fa-solid fa-file-word text-blue-500"></i> Ekspor Word (.docx)
             </button>
-            <button onclick="window.print()" class="text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-medium transition">
-              <i class="fa-solid fa-print"></i> Cetak PDF
+            <button onclick="printSpecificArea('modul-print-area')" class="text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5">
+              <i class="fa-solid fa-print"></i> Cetak
             </button>
           </div>
         </div>
 
-        <div id="modul-ajar-container" class="prose dark:prose-invert max-w-none text-xs text-slate-700 dark:text-slate-300 leading-relaxed space-y-4">
+        <div class="doc-kop doc-kop-target"></div>
+        <div id="modul-ajar-container" class="doc-formatted max-w-none text-xs text-slate-700 dark:text-slate-300 leading-relaxed space-y-3">
           <p class="text-slate-400 italic">Klik generate di tab pertama untuk menyusun modul ajar otomatis...</p>
         </div>
+        <div class="doc-ttd doc-ttd-target"></div>
       </div>
     </section>
 
@@ -581,33 +635,79 @@
     <section id="lkpd-tab" class="tab-content hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- LKPD -->
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-          <h2 class="text-base font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-file-pen text-blue-600 dark:text-blue-400"></i> Lembar Kerja Peserta Didik (LKPD)
-          </h2>
-          <div id="lkpd-container" class="text-xs text-slate-700 dark:text-slate-300 space-y-3">
+        <div id="lkpd-print-area" class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+          <div class="flex flex-wrap justify-between items-center gap-2 no-print">
+            <h2 class="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <i class="fa-solid fa-file-pen text-blue-600 dark:text-blue-400"></i> Lembar Kerja Peserta Didik (LKPD)
+            </h2>
+            <div class="flex flex-wrap gap-1.5">
+              <button onclick="downloadPDFDirect('lkpd-print-area', 'LKPD_Kurikulum_Merdeka')" class="text-[11px] bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700 hover:bg-red-100 px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1">
+                <i class="fa-solid fa-file-pdf"></i> PDF
+              </button>
+              <button onclick="exportToWord('lkpd-print-area', 'LKPD_Kurikulum_Merdeka')" class="text-[11px] bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1">
+                <i class="fa-solid fa-file-word text-blue-500"></i> Word
+              </button>
+              <button onclick="printSpecificArea('lkpd-print-area')" class="text-[11px] bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 px-2.5 py-1 rounded-lg font-medium transition flex items-center gap-1">
+                <i class="fa-solid fa-print"></i> Cetak
+              </button>
+            </div>
+          </div>
+          <div class="doc-kop doc-kop-target"></div>
+          <div id="lkpd-container" class="doc-formatted text-xs text-slate-700 dark:text-slate-300 space-y-3">
             <p class="text-slate-400 italic">Belum ada LKPD yang digenerate.</p>
           </div>
+          <div class="doc-ttd doc-ttd-target"></div>
         </div>
+
         <!-- Media Pembelajaran -->
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-          <h2 class="text-base font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-photo-film text-blue-600 dark:text-blue-400"></i> Rencana Media Pembelajaran
-          </h2>
-          <div id="media-container" class="text-xs text-slate-700 dark:text-slate-300 space-y-3">
+        <div id="media-print-area" class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+          <div class="flex flex-wrap justify-between items-center gap-2 no-print">
+            <h2 class="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <i class="fa-solid fa-photo-film text-blue-600 dark:text-blue-400"></i> Rencana Media Pembelajaran
+            </h2>
+            <div class="flex flex-wrap gap-1.5">
+              <button onclick="downloadPDFDirect('media-print-area', 'Media_Pembelajaran_Kurikulum_Merdeka')" class="text-[11px] bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700 hover:bg-red-100 px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1">
+                <i class="fa-solid fa-file-pdf"></i> PDF
+              </button>
+              <button onclick="exportToWord('media-print-area', 'Media_Pembelajaran_Kurikulum_Merdeka')" class="text-[11px] bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1">
+                <i class="fa-solid fa-file-word text-blue-500"></i> Word
+              </button>
+              <button onclick="printSpecificArea('media-print-area')" class="text-[11px] bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 px-2.5 py-1 rounded-lg font-medium transition flex items-center gap-1">
+                <i class="fa-solid fa-print"></i> Cetak
+              </button>
+            </div>
+          </div>
+          <div class="doc-kop doc-kop-target"></div>
+          <div id="media-container" class="doc-formatted text-xs text-slate-700 dark:text-slate-300 space-y-3">
             <p class="text-slate-400 italic">Belum ada instruksi media pembelajaran.</p>
           </div>
+          <div class="doc-ttd doc-ttd-target"></div>
         </div>
       </div>
 
       <!-- JURNAL HARIAN MENGAJAR GURU -->
-      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-3">
-        <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
-          <i class="fa-solid fa-clipboard-user text-emerald-600 dark:text-emerald-400"></i> Agenda & Jurnal Harian Pelaksanaan Mengajar
-        </h2>
-        <div id="jurnal-container" class="text-xs text-slate-700 dark:text-slate-300">
+      <div id="jurnal-print-area" class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+        <div class="flex flex-wrap justify-between items-center gap-4 no-print">
+          <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+            <i class="fa-solid fa-clipboard-user text-emerald-600 dark:text-emerald-400"></i> Agenda & Jurnal Harian Pelaksanaan Mengajar
+          </h2>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="downloadPDFDirect('jurnal-print-area', 'Jurnal_Mengajar_Kurikulum_Merdeka')" class="text-xs bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700 hover:bg-red-100 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-file-pdf"></i> Unduh PDF
+            </button>
+            <button onclick="exportToWord('jurnal-print-area', 'Jurnal_Mengajar_Kurikulum_Merdeka')" class="text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-file-word text-blue-500"></i> Ekspor Word (.docx)
+            </button>
+            <button onclick="printSpecificArea('jurnal-print-area')" class="text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5">
+              <i class="fa-solid fa-print"></i> Cetak
+            </button>
+          </div>
+        </div>
+        <div class="doc-kop doc-kop-target"></div>
+        <div id="jurnal-container" class="doc-formatted text-xs text-slate-700 dark:text-slate-300 space-y-3">
           <p class="text-slate-400 italic">Belum ada draf Jurnal mengajar harian.</p>
         </div>
+        <div class="doc-ttd doc-ttd-target"></div>
       </div>
     </section>
 
@@ -623,17 +723,18 @@
             </h2>
             <div class="flex flex-wrap gap-2">
               <button onclick="downloadPDFDirect('kisi-kisi-area', 'Kisi_Kisi_Soal_Kurikulum_Merdeka')" class="text-xs bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700 hover:bg-red-100 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
-                <i class="fa-solid fa-file-pdf"></i> Unduh Kisi-Kisi PDF
+                <i class="fa-solid fa-file-pdf"></i> Unduh PDF
               </button>
               <button onclick="exportToWord('kisi-kisi-area', 'Kisi_Kisi_Soal_Kurikulum_Merdeka')" class="text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
-                <i class="fa-solid fa-file-word text-blue-500"></i> Ekspor Kisi-Kisi Word (.docx)
+                <i class="fa-solid fa-file-word text-blue-500"></i> Ekspor Word (.docx)
               </button>
-              <button onclick="window.print()" class="text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5">
+              <button onclick="printSpecificArea('kisi-kisi-area')" class="text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5">
                 <i class="fa-solid fa-print"></i> Cetak
               </button>
             </div>
           </div>
 
+          <div class="doc-kop doc-kop-target"></div>
           <div class="overflow-x-auto">
             <table id="table-kisi-kisi" class="w-full text-left border-collapse border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
               <thead class="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] uppercase">
@@ -651,33 +752,42 @@
               </tbody>
             </table>
           </div>
+          <div class="doc-ttd doc-ttd-target"></div>
         </div>
 
         <hr class="border-slate-200 dark:border-slate-700">
 
         <!-- Kuis Bank Soal & Kartu Soal -->
-        <div>
+        <div id="bank-soal-area" class="space-y-4">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3 no-print">
             <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
               <i class="fa-solid fa-circle-question text-blue-600 dark:text-blue-400"></i> Bank Soal & Kartu Ujian Siswa
             </h2>
             
             <div class="flex flex-wrap gap-2">
+              <button onclick="downloadPDFDirect('bank-soal-area', 'Bank_Soal_Kurikulum_Merdeka')" class="text-xs bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700 hover:bg-red-100 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-file-pdf"></i> Unduh PDF
+              </button>
+              <button onclick="exportToWord('bank-soal-area', 'Bank_Soal_Kurikulum_Merdeka')" class="text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-file-word text-blue-500"></i> Ekspor Word (.docx)
+              </button>
+              <button onclick="printSpecificArea('bank-soal-area')" class="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-print"></i> Cetak
+              </button>
               <button onclick="copyQuizOnly()" class="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
                 <i class="fa-solid fa-copy text-blue-500"></i> Salin Soal
               </button>
               <button onclick="copyAnswerKeys()" class="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
                 <i class="fa-solid fa-key text-amber-500"></i> Salin Kunci
               </button>
-              <button onclick="printExamCardFormat()" class="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
-                <i class="fa-solid fa-print"></i> Format Kartu Soal
-              </button>
             </div>
           </div>
 
+          <div class="doc-kop doc-kop-target"></div>
           <div id="kuis-container" class="text-xs text-slate-700 dark:text-slate-300 space-y-4">
             <p class="text-slate-400 italic">Belum ada kuis yang digenerate.</p>
           </div>
+          <div class="doc-ttd doc-ttd-target"></div>
         </div>
 
       </div>
@@ -712,6 +822,7 @@
     window.addEventListener('DOMContentLoaded', () => {
       initConfigurations();
       initTheme();
+      updateKopHeaders();
     });
 
     function requestOpenConfigPanel() {
@@ -977,7 +1088,8 @@ Berdasarkan parameter berikut:
 - Sertakan Rubrik Diferensiasi/Inklusi: ${isDiferensiasi}
 - Catatan Khusus Tambahan: ${instruksiKhusus}
 
-Buatkan perangkat pembelajaran secara terstruktur, akurat, dan sangat lengkap. 
+Buatkan perangkat pembelajaran secara terstruktur, akurat, dan sangat lengkap.
+Gunakan judul bagian yang jelas (misal: A. INFORMASI UMUM, B. KOMPONEN INTI, C. LAMPIRAN) dan poin-poin terurut agar mudah diformat menjadi dokumen siap cetak.
 KHUSUS UNTUK MODUL AJAR: Berikan alur kegiatan pembelajaran secara sangat rinci meliputi Kegiatan Pendahuluan (dengan estimasi menit), Kegiatan Inti yang diurai berdasarkan langkah-langkah/sintaks model ${model} secara spesifik, dan Kegiatan Penutup.
 
 Kembalikan HANYA format JSON murni tanpa karakter atau pembungkus markdown apapun.
@@ -995,9 +1107,9 @@ Skema JSON wajib:
     {"no": 1, "materi": "Materi Pokok 1", "jp": 4, "b1": "4", "b2": "", "b3": "", "b4": ""}
   ],
   "modul": "Lengkap dengan Identitas, Profil Pelajar Pancasila, Pemahaman Bermakna, Pertanyaan Pemantik, ALUR KEGIATAN PEMBELAJARAN RINCI (Pendahuluan, Inti sesuai Sintaks ${model}, Penutup), Asesmen Diferensiasi, & Refleksi.",
-  "lkpd": "Lembar Kerja Peserta Didik (Instruksi, Tugas Kelompok/Individu, & Rubrik Penting)",
-  "media": "Rekomendasi Media & Alat Pembelajaran Digital/Konvensional",
-  "jurnal": "Rancangan Jurnal Agenda Harian Mengajar (Hari/Tgl, Jam ke-, TP, Aktivitas, & Catatan Evaluasi)",
+  "lkpd": "Lembar Kerja Peserta Didik (Identitas LKPD, Tujuan, Petunjuk Pengerjaan, Aktivitas/Tugas Kelompok atau Individu, & Rubrik Penilaian)",
+  "media": "Rekomendasi Media & Alat Pembelajaran (Media Visual/Audio-Visual, Alat/Bahan, Langkah Persiapan, & Cara Penggunaan di Kelas)",
+  "jurnal": "Rancangan Jurnal Agenda Harian Mengajar (Hari/Tanggal, Pertemuan/Jam ke-, Tujuan Pembelajaran, Ringkasan Kegiatan, Hambatan/Catatan Siswa, & Tindak Lanjut)",
   "kisi_kisi": [
     {
       "no": 1,
@@ -1070,6 +1182,87 @@ Skema JSON wajib:
       }
     }
 
+    /* ==========================================================================
+       3B. FORMATTER TEKS TERSTRUKTUR AGAR RAPI DI LAYAR, WORD & PDF
+       ========================================================================== */
+    function escapeHTML(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function formatInlineBold(text) {
+      return escapeHTML(text).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    }
+
+    function formatStructuredText(rawText) {
+      if (!rawText) return '';
+      const lines = String(rawText).replace(/\r\n/g, '\n').split('\n');
+      let html = '';
+      let listType = null; // 'ul' or 'ol'
+
+      const closeList = () => {
+        if (listType) {
+          html += `</${listType}>`;
+          listType = null;
+        }
+      };
+
+      for (let rawLine of lines) {
+        const line = rawLine.trim().replace(/^#+\s*/, '');
+        if (!line) {
+          closeList();
+          continue;
+        }
+
+        // Heading utama huruf kapital atau bagian A/B/C
+        if (/^([A-Z]\.\s+[A-Z0-9\s\/\(\)-]{4,}|[IVX]+\.\s+[A-Z0-9\s\/\(\)-]{3,})$/.test(line)) {
+          closeList();
+          html += `<h3>${formatInlineBold(line)}</h3>`;
+          continue;
+        }
+
+        // Sub-heading seperti "Kegiatan Pendahuluan:", "Fase 1:", dll.
+        if (/^(Kegiatan\s+(Pendahuluan|Inti|Penutup)|Fase\s+\d+|Langkah\s+\d+|Sintaks\s+.+|Tujuan\s+Pembelajaran|Petunjuk\s+Pengerjaan|Rubrik\s+Penilaian|Refleksi\s+(Guru|Peserta\s+Didik)|Asesmen.*|Profil\s+Pelajar\s+Pancasila|Pemahaman\s+Bermakna|Pertanyaan\s+Pemantik|Identitas.*|Media.*|Jurnal.*):?$/i.test(line)) {
+          closeList();
+          html += `<h4>${formatInlineBold(line.replace(/:$/, ''))}</h4>`;
+          continue;
+        }
+
+        // Bullet list (- atau *)
+        if (/^[-*•]\s+/.test(line)) {
+          if (listType !== 'ul') {
+            closeList();
+            html += '<ul>';
+            listType = 'ul';
+          }
+          const itemText = line.replace(/^[-*•]\s+/, '');
+          html += `<li>${formatInlineBold(itemText)}</li>`;
+          continue;
+        }
+
+        // Numbered list (1. atau 1))
+        if (/^\d+[\.)]\s+/.test(line)) {
+          if (listType !== 'ol') {
+            closeList();
+            html += '<ol>';
+            listType = 'ol';
+          }
+          const itemText = line.replace(/^\d+[\.)]\s+/, '');
+          html += `<li>${formatInlineBold(itemText)}</li>`;
+          continue;
+        }
+
+        closeList();
+        html += `<p>${formatInlineBold(line)}</p>`;
+      }
+
+      closeList();
+      return html;
+    }
+
     function renderGeneratedData(data) {
       updateKopHeaders();
 
@@ -1079,10 +1272,10 @@ Skema JSON wajib:
         const atpBody = document.getElementById('table-atp-body');
         atpBody.innerHTML = data.atp.map(item => `
           <tr>
-            <td class="p-3 border-b dark:border-slate-700 font-semibold text-blue-600 dark:text-blue-400">${item.kode || '-'}</td>
-            <td class="p-3 border-b dark:border-slate-700">${item.tp || '-'}</td>
-            <td class="p-3 border-b dark:border-slate-700">${item.materi || '-'}</td>
-            <td class="p-3 border-b dark:border-slate-700">${item.jp || '-'} JP</td>
+            <td class="p-3 border-b dark:border-slate-700 font-semibold text-blue-600 dark:text-blue-400">${escapeHTML(item.kode || '-')}</td>
+            <td class="p-3 border-b dark:border-slate-700">${escapeHTML(item.tp || '-')}</td>
+            <td class="p-3 border-b dark:border-slate-700">${escapeHTML(item.materi || '-')}</td>
+            <td class="p-3 border-b dark:border-slate-700">${escapeHTML(item.jp || '-')} JP</td>
           </tr>
         `).join('');
       }
@@ -1091,10 +1284,10 @@ Skema JSON wajib:
         const protaBody = document.getElementById('prota-table-body');
         protaBody.innerHTML = data.prota.map(pr => `
           <tr>
-            <td class="p-3 border dark:border-slate-700 text-center font-bold">${pr.no}</td>
-            <td class="p-3 border dark:border-slate-700">${pr.semester}</td>
-            <td class="p-3 border dark:border-slate-700">${pr.materi}</td>
-            <td class="p-3 border dark:border-slate-700 text-center font-bold text-blue-600 dark:text-blue-400">${pr.jp}</td>
+            <td class="p-3 border dark:border-slate-700 text-center font-bold">${escapeHTML(pr.no)}</td>
+            <td class="p-3 border dark:border-slate-700">${escapeHTML(pr.semester)}</td>
+            <td class="p-3 border dark:border-slate-700">${escapeHTML(pr.materi)}</td>
+            <td class="p-3 border dark:border-slate-700 text-center font-bold text-blue-600 dark:text-blue-400">${escapeHTML(pr.jp)}</td>
           </tr>
         `).join('');
       }
@@ -1103,29 +1296,29 @@ Skema JSON wajib:
         const promesBody = document.getElementById('promes-table-body');
         promesBody.innerHTML = data.promes.map(p => `
           <tr>
-            <td class="p-3 border dark:border-slate-700 text-center">${p.no}</td>
-            <td class="p-3 border dark:border-slate-700">${p.materi}</td>
-            <td class="p-3 border dark:border-slate-700 text-center">${p.jp}</td>
-            <td class="p-3 border dark:border-slate-700 text-center font-bold text-blue-600 dark:text-blue-400">${p.b1 || ''}</td>
-            <td class="p-3 border dark:border-slate-700 text-center font-bold text-blue-600 dark:text-blue-400">${p.b2 || ''}</td>
-            <td class="p-3 border dark:border-slate-700 text-center font-bold text-blue-600 dark:text-blue-400">${p.b3 || ''}</td>
-            <td class="p-3 border dark:border-slate-700 text-center font-bold text-blue-600 dark:text-blue-400">${p.b4 || ''}</td>
+            <td class="p-3 border dark:border-slate-700 text-center">${escapeHTML(p.no)}</td>
+            <td class="p-3 border dark:border-slate-700">${escapeHTML(p.materi)}</td>
+            <td class="p-3 border dark:border-slate-700 text-center">${escapeHTML(p.jp)}</td>
+            <td class="p-3 border dark:border-slate-700 text-center font-bold text-blue-600 dark:text-blue-400">${escapeHTML(p.b1 || '')}</td>
+            <td class="p-3 border dark:border-slate-700 text-center font-bold text-blue-600 dark:text-blue-400">${escapeHTML(p.b2 || '')}</td>
+            <td class="p-3 border dark:border-slate-700 text-center font-bold text-blue-600 dark:text-blue-400">${escapeHTML(p.b3 || '')}</td>
+            <td class="p-3 border dark:border-slate-700 text-center font-bold text-blue-600 dark:text-blue-400">${escapeHTML(p.b4 || '')}</td>
           </tr>
         `).join('');
       }
 
       if (data.modul) {
-        document.getElementById('modul-ajar-container').innerHTML = `<div class="whitespace-pre-line">${data.modul}</div>`;
+        document.getElementById('modul-ajar-container').innerHTML = formatStructuredText(data.modul);
       }
 
       if (data.lkpd) {
-        document.getElementById('lkpd-container').innerHTML = `<div class="whitespace-pre-line">${data.lkpd}</div>`;
+        document.getElementById('lkpd-container').innerHTML = formatStructuredText(data.lkpd);
       }
       if (data.media) {
-        document.getElementById('media-container').innerHTML = `<div class="whitespace-pre-line">${data.media}</div>`;
+        document.getElementById('media-container').innerHTML = formatStructuredText(data.media);
       }
       if (data.jurnal) {
-        document.getElementById('jurnal-container').innerHTML = `<div class="whitespace-pre-line">${data.jurnal}</div>`;
+        document.getElementById('jurnal-container').innerHTML = formatStructuredText(data.jurnal);
       }
 
       if (data.kisi_kisi && Array.isArray(data.kisi_kisi)) {
@@ -1133,14 +1326,14 @@ Skema JSON wajib:
         const kisiBody = document.getElementById('kisi-kisi-body');
         kisiBody.innerHTML = data.kisi_kisi.map(k => `
           <tr>
-            <td class="p-3 border dark:border-slate-700 text-center font-bold">${k.no}</td>
-            <td class="p-3 border dark:border-slate-700 font-medium">${k.materi_tp || '-'}</td>
-            <td class="p-3 border dark:border-slate-700">${k.indikator || '-'}</td>
+            <td class="p-3 border dark:border-slate-700 text-center font-bold">${escapeHTML(k.no)}</td>
+            <td class="p-3 border dark:border-slate-700 font-medium">${escapeHTML(k.materi_tp || '-')}</td>
+            <td class="p-3 border dark:border-slate-700">${escapeHTML(k.indikator || '-')}</td>
             <td class="p-3 border dark:border-slate-700 text-center">
-              <span class="text-[10px] bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 px-2 py-0.5 rounded font-semibold">${k.level || '-'}</span>
+              <span class="text-[10px] bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 px-2 py-0.5 rounded font-semibold">${escapeHTML(k.level || '-')}</span>
             </td>
-            <td class="p-3 border dark:border-slate-700 text-center">${k.bentuk || '-'}</td>
-            <td class="p-3 border dark:border-slate-700 text-center font-bold text-emerald-600 dark:text-emerald-400">${k.skor ?? '-'}</td>
+            <td class="p-3 border dark:border-slate-700 text-center">${escapeHTML(k.bentuk || '-')}</td>
+            <td class="p-3 border dark:border-slate-700 text-center font-bold text-emerald-600 dark:text-emerald-400">${escapeHTML(k.skor ?? '-')}</td>
           </tr>
         `).join('');
       } else if (data.kuis && Array.isArray(data.kuis)) {
@@ -1155,12 +1348,12 @@ Skema JSON wajib:
         const kisiBody = document.getElementById('kisi-kisi-body');
         kisiBody.innerHTML = rawGeneratedKisiKisi.map(k => `
           <tr>
-            <td class="p-3 border dark:border-slate-700 text-center font-bold">${k.no}</td>
-            <td class="p-3 border dark:border-slate-700 font-medium">${k.materi_tp}</td>
-            <td class="p-3 border dark:border-slate-700">${k.indikator}</td>
-            <td class="p-3 border dark:border-slate-700 text-center">${k.level}</td>
-            <td class="p-3 border dark:border-slate-700 text-center">${k.bentuk}</td>
-            <td class="p-3 border dark:border-slate-700 text-center font-bold text-emerald-600 dark:text-emerald-400">${k.skor}</td>
+            <td class="p-3 border dark:border-slate-700 text-center font-bold">${escapeHTML(k.no)}</td>
+            <td class="p-3 border dark:border-slate-700 font-medium">${escapeHTML(k.materi_tp)}</td>
+            <td class="p-3 border dark:border-slate-700">${escapeHTML(k.indikator)}</td>
+            <td class="p-3 border dark:border-slate-700 text-center">${escapeHTML(k.level)}</td>
+            <td class="p-3 border dark:border-slate-700 text-center">${escapeHTML(k.bentuk)}</td>
+            <td class="p-3 border dark:border-slate-700 text-center font-bold text-emerald-600 dark:text-emerald-400">${escapeHTML(k.skor)}</td>
           </tr>
         `).join('');
       }
@@ -1171,20 +1364,20 @@ Skema JSON wajib:
         kuisCont.innerHTML = data.kuis.map(q => `
           <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
             <div class="flex justify-between items-center">
-              <span class="font-bold text-slate-800 dark:text-white text-xs">Soal No. ${q.no}</span>
-              <span class="text-[10px] bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 px-2.5 py-0.5 rounded-full font-semibold uppercase">${q.tipe || 'Kuis'}</span>
+              <span class="font-bold text-slate-800 dark:text-white text-xs">Soal No. ${escapeHTML(q.no)}</span>
+              <span class="text-[10px] bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 px-2.5 py-0.5 rounded-full font-semibold uppercase">${escapeHTML(q.tipe || 'Kuis')}</span>
             </div>
-            <p class="text-xs font-medium text-slate-700 dark:text-slate-300 leading-relaxed">${q.soal}</p>
+            <p class="text-xs font-medium text-slate-700 dark:text-slate-300 leading-relaxed">${escapeHTML(q.soal)}</p>
             
             ${q.opsi && Array.isArray(q.opsi) && q.opsi.length > 0 ? `
               <ul class="list-disc list-inside ml-2 text-xs text-slate-600 dark:text-slate-400 space-y-1 my-2">
-                ${q.opsi.map(o => `<li>${o}</li>`).join('')}
+                ${q.opsi.map(o => `<li>${escapeHTML(o)}</li>`).join('')}
               </ul>
             ` : ''}
 
             <div class="bg-emerald-50/70 dark:bg-emerald-900/20 p-2.5 rounded-lg border border-emerald-200/60 dark:border-emerald-800/40 mt-2">
               <p class="text-[11px] text-emerald-800 dark:text-emerald-300 font-medium">
-                <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400"></i> <span class="font-bold">Kunci / Rubrik Jawaban:</span> ${q.kunci}
+                <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400"></i> <span class="font-bold">Kunci / Rubrik Jawaban:</span> ${escapeHTML(q.kunci)}
               </p>
             </div>
           </div>
@@ -1200,6 +1393,8 @@ Skema JSON wajib:
       const nipKepsek = document.getElementById('input-nip-kepsek').value;
       const kota = document.getElementById('input-kota-penetapan').value;
       const tgl = document.getElementById('input-tanggal-penetapan').value;
+      const mapel = document.getElementById('input-mapel').value;
+      const fase = document.getElementById('input-fase').value;
 
       document.getElementById('kop-sekolah-1').innerText = sekolah;
       document.getElementById('ttd-guru-1').innerText = guru;
@@ -1207,18 +1402,73 @@ Skema JSON wajib:
       document.getElementById('ttd-kepsek-1').innerText = kepsek;
       document.getElementById('nip-kepsek-1').innerText = "NIP. " + nipKepsek;
       document.getElementById('ttd-kota-tgl-1').innerText = `${kota}, ${tgl}`;
+
+      const kopHtml = `
+        <div style="font-weight:700;font-size:14px;text-transform:uppercase;">${escapeHTML(sekolah)}</div>
+        <div style="font-size:11px;margin-top:2px;">${escapeHTML(mapel)} — ${escapeHTML(fase)}</div>
+      `;
+
+      const ttdHtml = `
+        <table style="width:100%;border:none;margin-top:24px;font-size:11px;text-align:center;">
+          <tr>
+            <td style="width:50%;border:none;text-align:center;vertical-align:top;">
+              <div>Mengetahui,</div>
+              <div style="font-weight:700;">Kepala Sekolah</div>
+              <div style="height:56px;"></div>
+              <div style="font-weight:700;text-decoration:underline;">${escapeHTML(kepsek)}</div>
+              <div>NIP. ${escapeHTML(nipKepsek)}</div>
+            </td>
+            <td style="width:50%;border:none;text-align:center;vertical-align:top;">
+              <div>${escapeHTML(kota)}, ${escapeHTML(tgl)}</div>
+              <div style="font-weight:700;">Guru Mata Pelajaran</div>
+              <div style="height:56px;"></div>
+              <div style="font-weight:700;text-decoration:underline;">${escapeHTML(guru)}</div>
+              <div>NIP. ${escapeHTML(nipGuru)}</div>
+            </td>
+          </tr>
+        </table>
+      `;
+
+      document.querySelectorAll('.doc-kop-target').forEach(el => { el.innerHTML = kopHtml; });
+      document.querySelectorAll('.doc-ttd-target').forEach(el => { el.innerHTML = ttdHtml; });
     }
 
     /* ==========================================================================
-       4. FITUR EKSPOR PDF LANGSUNG, WORD & BACKUP/RESTORE JSON
+       4. FITUR EKSPOR PDF LANGSUNG, WORD, CETAK & BACKUP/RESTORE JSON
        ========================================================================== */
+    function printSpecificArea(elementId) {
+      updateKopHeaders();
+      const target = document.getElementById(elementId);
+      if (!target) {
+        window.print();
+        return;
+      }
+
+      const prevPrintOnly = document.querySelectorAll('.single-print-active');
+      prevPrintOnly.forEach(el => el.classList.remove('single-print-active'));
+
+      const parentSection = target.closest('.tab-content');
+      if (parentSection) {
+        parentSection.classList.add('single-print-active');
+      }
+
+      window.print();
+
+      setTimeout(() => {
+        if (parentSection) {
+          parentSection.classList.remove('single-print-active');
+        }
+      }, 400);
+    }
+
     function downloadPDFDirect(elementId, filename) {
+      updateKopHeaders();
       const element = document.getElementById(elementId);
       const opt = {
-        margin:       [10, 10, 10, 10],
+        margin:       [12, 12, 12, 12],
         filename:     `${filename}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
+        html2canvas:  { scale: 2, useCORS: true },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
@@ -1227,27 +1477,66 @@ Skema JSON wajib:
     }
 
     function exportToWord(elementId, filename) {
-      const content = document.getElementById(elementId).outerHTML;
+      updateKopHeaders();
+      const sourceEl = document.getElementById(elementId);
+      const clone = sourceEl.cloneNode(true);
+      clone.querySelectorAll('.no-print, button').forEach(el => el.remove());
+
       const sekolah = document.getElementById('input-nama-sekolah').value;
-      
+      const mapel = document.getElementById('input-mapel').value;
+      const fase = document.getElementById('input-fase').value;
+      const guru = document.getElementById('input-nama-guru').value;
+      const nipGuru = document.getElementById('input-nip-guru').value;
+      const kepsek = document.getElementById('input-nama-kepsek').value;
+      const nipKepsek = document.getElementById('input-nip-kepsek').value;
+      const kota = document.getElementById('input-kota-penetapan').value;
+      const tgl = document.getElementById('input-tanggal-penetapan').value;
+
       const htmlString = `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="utf-8">
-          <title>${filename}</title>
+          <title>${escapeHTML(filename)}</title>
           <style>
-            body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.5; }
-            h1, h2, h3 { text-align: center; }
-            table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-            th, td { border: 1px solid #000; padding: 6px; text-align: left; }
-            th { background-color: #f2f2f2; }
-            .no-print { display: none; }
+            body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #111; }
+            h2 { font-size: 13pt; margin: 0 0 4px 0; text-align: center; }
+            h3 { font-size: 12pt; margin-top: 14px; margin-bottom: 6px; border-bottom: 1px solid #999; padding-bottom: 3px; }
+            h4 { font-size: 11pt; margin-top: 10px; margin-bottom: 4px; }
+            p { margin: 0 0 8px 0; text-align: justify; }
+            ul, ol { margin: 4px 0 10px 22px; }
+            li { margin-bottom: 4px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+            th, td { border: 1px solid #333; padding: 6px 8px; text-align: left; vertical-align: top; }
+            th { background-color: #f0f4f8; font-weight: bold; }
+            .kop-word { text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 14px; }
+            .ttd-table, .ttd-table td { border: none !important; text-align: center !important; }
           </style>
         </head>
         <body>
-          <h2 style="text-align:center;">${sekolah.toUpperCase()}</h2>
-          ${content}
+          <div class="kop-word">
+            <h2>${escapeHTML(sekolah).toUpperCase()}</h2>
+            <div>${escapeHTML(mapel)} — ${escapeHTML(fase)}</div>
+          </div>
+          ${clone.innerHTML}
+          <table class="ttd-table" style="width:100%;margin-top:28px;">
+            <tr>
+              <td style="width:50%;">
+                <div>Mengetahui,</div>
+                <div><strong>Kepala Sekolah</strong></div>
+                <br><br><br>
+                <div><strong><u>${escapeHTML(kepsek)}</u></strong></div>
+                <div>NIP. ${escapeHTML(nipKepsek)}</div>
+              </td>
+              <td style="width:50%;">
+                <div>${escapeHTML(kota)}, ${escapeHTML(tgl)}</div>
+                <div><strong>Guru Mata Pelajaran</strong></div>
+                <br><br><br>
+                <div><strong><u>${escapeHTML(guru)}</u></strong></div>
+                <div>NIP. ${escapeHTML(nipGuru)}</div>
+              </td>
+            </tr>
+          </table>
         </body>
         </html>
       `;
@@ -1328,14 +1617,6 @@ Skema JSON wajib:
 
       navigator.clipboard.writeText(text);
       showToast("Berhasil menyalin kunci jawaban!", "success");
-    }
-
-    function printExamCardFormat() {
-      if (!rawGeneratedQuiz.length) {
-        showToast("Belum ada kuis yang digenerate untuk dicetak kartu soal.", "error");
-        return;
-      }
-      window.print();
     }
 
     /* ==========================================================================
