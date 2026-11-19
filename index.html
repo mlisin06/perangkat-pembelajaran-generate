@@ -26,8 +26,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Google Fonts: Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- SheetJS (XLSX) for Excel Export -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <!-- PDF.js for PDF Reading -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
   <!-- Mammoth.js for Word DOCX Reading -->
@@ -207,7 +205,7 @@
         <i class="fa-solid fa-flask"></i> 5. LKPD, Media & Jurnal
       </button>
       <button onclick="switchTab('kuisrekap-tab')" id="tab-kuisrekap-tab" class="tab-button py-3.5 px-4 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 whitespace-nowrap flex items-center gap-2">
-        <i class="fa-solid fa-chart-simple"></i> 6. Kuis, Kisi-Kisi & Rekap Nilai
+        <i class="fa-solid fa-circle-question"></i> 6. Kuis & Kisi-Kisi
       </button>
     </div>
   </nav>
@@ -253,7 +251,7 @@
             </div>
             <div class="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700 text-xs space-y-1">
               <p class="font-semibold text-slate-800 dark:text-slate-200"><i class="fa-solid fa-user-circle text-emerald-500"></i> Guru Budi</p>
-              <p class="text-slate-600 dark:text-slate-400 italic">"Memudahkan tugas harian. Fitur rekap nilai excel-nya luar biasa."</p>
+              <p class="text-slate-600 dark:text-slate-400 italic">"Memudahkan tugas harian. Pembuatan kisi-kisi dan soalnya sangat praktis."</p>
               <span class="inline-block text-[10px] bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded font-medium">5 Bintang</span>
             </div>
           </div>
@@ -613,7 +611,7 @@
       </div>
     </section>
 
-    <!-- TAB 6: KISI-KISI, KUIS, KARTU SOAL & REKAP NILAI INTERAKTIF -->
+    <!-- TAB 6: KISI-KISI, KUIS & KARTU SOAL -->
     <section id="kuisrekap-tab" class="tab-content hidden space-y-6">
       <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-8">
         
@@ -682,51 +680,6 @@
           </div>
         </div>
 
-        <hr class="border-slate-200 dark:border-slate-700">
-
-        <!-- Rekap Nilai Interactive Table -->
-        <div>
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-            <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
-              <i class="fa-solid fa-table text-emerald-600 dark:text-emerald-400"></i> Rekap Nilai Siswa Interaktif
-            </h2>
-            <div class="flex gap-2">
-              <button onclick="addRowSiswa()" class="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
-                + Tambah Siswa
-              </button>
-              <button onclick="exportNilaiToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
-                <i class="fa-solid fa-file-excel"></i> Ekspor Excel
-              </button>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table id="table-rekap" class="w-full text-left border-collapse border border-slate-200 dark:border-slate-700 rounded-lg">
-              <thead class="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] uppercase">
-                <tr>
-                  <th class="p-3 border dark:border-slate-600">Nama Siswa</th>
-                  <th class="p-3 border dark:border-slate-600 w-24">Formatif 1</th>
-                  <th class="p-3 border dark:border-slate-600 w-24">Formatif 2</th>
-                  <th class="p-3 border dark:border-slate-600 w-24">Sumatif (PAS)</th>
-                  <th class="p-3 border dark:border-slate-600 w-28 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300">Rata-Rata</th>
-                  <th class="p-3 border dark:border-slate-600 w-16 text-center">Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="rekap-body" class="text-xs divide-y divide-slate-200 dark:divide-slate-700">
-                <tr>
-                  <td class="p-2 border dark:border-slate-700"><input type="text" value="Ahmad Fauzi" class="w-full bg-transparent p-1 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
-                  <td class="p-2 border dark:border-slate-700"><input type="number" value="85" oninput="calculateAverages()" class="val-f1 w-full bg-transparent p-1 text-center focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
-                  <td class="p-2 border dark:border-slate-700"><input type="number" value="80" oninput="calculateAverages()" class="val-f2 w-full bg-transparent p-1 text-center focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
-                  <td class="p-2 border dark:border-slate-700"><input type="number" value="90" oninput="calculateAverages()" class="val-sum w-full bg-transparent p-1 text-center focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
-                  <td class="p-2 border dark:border-slate-700 bg-emerald-50/50 dark:bg-emerald-900/20 font-bold text-center text-emerald-700 dark:text-emerald-400 val-avg">85.0</td>
-                  <td class="p-2 border dark:border-slate-700 text-center">
-                    <button onclick="deleteRow(this)" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -1386,50 +1339,8 @@ Skema JSON wajib:
     }
 
     /* ==========================================================================
-       5. REKAP NILAI & UTILITAS TAMPILAN
+       5. UTILITAS TAMPILAN
        ========================================================================== */
-    function calculateAverages() {
-      const rows = document.querySelectorAll('#rekap-body tr');
-      rows.forEach(row => {
-        const f1 = parseFloat(row.querySelector('.val-f1')?.value || 0);
-        const f2 = parseFloat(row.querySelector('.val-f2')?.value || 0);
-        const sum = parseFloat(row.querySelector('.val-sum')?.value || 0);
-        const avgCell = row.querySelector('.val-avg');
-
-        if (avgCell) {
-          const avg = (f1 + f2 + sum) / 3;
-          avgCell.innerText = avg.toFixed(1);
-        }
-      });
-    }
-
-    function addRowSiswa() {
-      const tbody = document.getElementById('rekap-body');
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="p-2 border dark:border-slate-700"><input type="text" value="Siswa Baru" class="w-full bg-transparent p-1 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
-        <td class="p-2 border dark:border-slate-700"><input type="number" value="0" oninput="calculateAverages()" class="val-f1 w-full bg-transparent p-1 text-center focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
-        <td class="p-2 border dark:border-slate-700"><input type="number" value="0" oninput="calculateAverages()" class="val-f2 w-full bg-transparent p-1 text-center focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
-        <td class="p-2 border dark:border-slate-700"><input type="number" value="0" oninput="calculateAverages()" class="val-sum w-full bg-transparent p-1 text-center focus:bg-white dark:focus:bg-slate-900 focus:outline-none"></td>
-        <td class="p-2 border dark:border-slate-700 bg-emerald-50/50 dark:bg-emerald-900/20 font-bold text-center text-emerald-700 dark:text-emerald-400 val-avg">0.0</td>
-        <td class="p-2 border dark:border-slate-700 text-center">
-          <button onclick="deleteRow(this)" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-      calculateAverages();
-    }
-
-    function deleteRow(btn) {
-      btn.closest('tr').remove();
-    }
-
-    function exportNilaiToExcel() {
-      const table = document.getElementById('table-rekap');
-      const wb = XLSX.utils.table_to_book(table, { sheet: "Rekap Nilai" });
-      XLSX.writeFile(wb, `Rekap_Nilai_Kurikulum_Merdeka.xlsx`);
-    }
-
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.tab-button').forEach(el => {
